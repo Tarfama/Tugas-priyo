@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library - Myperpus</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/lbry.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">MYPERPUS</a>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <a href="index.html">Home</a>
+                <a href="library.html" class="aktif">Library</a>
+                <a href="explore.html">Explore</a>
+            </ul>
+        </nav>
+
+        <div class="kanan">
+            <div class="search">
+                <input type="text" placeholder="Cari...">
+            </div>
+            <div class="profile">
+                <a href="profile.html">
+                    <img src="profile.jpg" alt="Profile">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="library">
+        <h1>Library</h1>
+
+        <div class="tabs">
+            <button class="tab aktif" data-target="bookmark">Bookmark</button>
+            <button class="tab" data-target="history">History</button>
+        </div>
+
+
+        <!--Bookmark-->
+        <section class="panel" id="bookmark">
+            <div class="book-grid">
+                <a href="detail.html" class="book">
+                    <img src="novel1.jpg" alt="novel1">
+                    <p>Judul novel pertama</p>
+                </a>
+
+                <a href="detail.html" class="book">
+                    <img src="novel2.jpg" alt="novel2">
+                    <p>Judul novel Kedua</p>
+                </a>
+
+                <a href="detail.html" class="book">
+                    <img src="novel3.jpg" alt="novel3">
+                    <p>Judul novel katiga</p>
+                </a>
+            </div>
+        </section>
+
+        <!--History-->
+        <section class="panel hidden" id="history">
+            <div class="history-top">
+                <p>Terakhir dibaca</p>
+                <button class="btn-hapus-semua" id="hapus-semua">Hapus semua</button>
+            </div>
+
+            <ul class="history-list" id="history-list">
+                <li class="history-item">
+                    <img src="novel1.jpg" alt="novel1">
+                    <div class="history-info">
+                        <h3>Judul novel pertama</h3>
+                        <p>bab 1</p>
+                    </div>
+                    <button class="btn-hapus">Hapus</button>
+                </li>
+                <li class="history-item">
+                    <img src="novel2.jpg" alt="novel2">
+                    <div class="history-info">
+                        <h3>Judul novel kedua</h3>
+                        <p>bab 1</p>
+                    </div>
+                    <button class="btn-hapus">Hapus</button>
+                </li>
+                <li class="history-item">
+                    <img src="novel3.jpg" alt="novel3">
+                    <div class="history-info">
+                        <h3>Judul novel ketiga</h3>
+                        <p>bab 1</p>
+                    </div>
+                    <button class="btn-hapus">Hapus</button>
+                </li>
+            </ul>
+
+            <p class="kosong hidden" id="history-kosong">Belum ada riwayat bacaan.</p>
+        </section>
+    </main>
+
+    <script src="js/library.js"></script>
+</body>
+
+</html>

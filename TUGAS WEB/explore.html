@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library - Myperpus</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/explore.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">MYPERPUS</a>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <a href="index.html">Home</a>
+                <a href="library.html">Library</a>
+                <a href="explore.html" class="aktif">Explore</a>
+            </ul>
+        </nav>
+
+        <div class="kanan">
+            <div class="search">
+                <input type="text" placeholder="Cari...">
+            </div>
+            <div class="profile">
+                <a href="profile.html">
+                    <img src="profile.jpg" alt="Profile">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="explore">
+        <h1>Daftar Buku</h1>
+
+        <div class="toolbar">
+            <div class="genre-list" id="genre-list"></div>
+
+            <div class="urutkan">
+                <label for="urutkan">Urutkan: </label>
+                <select id="urutkan">
+                    <option value="terbaru">Terbaru</option>
+                    <option value="az">Judul A-Z </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="book-grid" id="book-grid"></div>
+
+        <p class="kosong hidden" id="explore-kosong">Belum ada buku di genre ini.</p>
+    </main>
+
+    <script src="js/explore.js"></script>
+</body>
