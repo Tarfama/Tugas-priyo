@@ -47,22 +47,8 @@
 
         <!--Bookmark-->
         <section class="panel" id="bookmark">
-            <div class="book-grid">
-                <a href="detail.html" class="book">
-                    <img src="novel1.jpg" alt="novel1">
-                    <p>Judul novel pertama</p>
-                </a>
-
-                <a href="detail.html" class="book">
-                    <img src="novel2.jpg" alt="novel2">
-                    <p>Judul novel Kedua</p>
-                </a>
-
-                <a href="detail.html" class="book">
-                    <img src="novel3.jpg" alt="novel3">
-                    <p>Judul novel katiga</p>
-                </a>
-            </div>
+            <div class="book-grid" id="bookmark-list"></div>
+            <p class="kosong hidden" id="bookmark-kosong">Belum ada bookmark.</p>
         </section>
 
         <!--History-->
@@ -72,38 +58,14 @@
                 <button class="btn-hapus-semua" id="hapus-semua">Hapus semua</button>
             </div>
 
-            <ul class="history-list" id="history-list">
-                <li class="history-item">
-                    <img src="novel1.jpg" alt="novel1">
-                    <div class="history-info">
-                        <h3>Judul novel pertama</h3>
-                        <p>bab 1</p>
-                    </div>
-                    <button class="btn-hapus">Hapus</button>
-                </li>
-                <li class="history-item">
-                    <img src="novel2.jpg" alt="novel2">
-                    <div class="history-info">
-                        <h3>Judul novel kedua</h3>
-                        <p>bab 1</p>
-                    </div>
-                    <button class="btn-hapus">Hapus</button>
-                </li>
-                <li class="history-item">
-                    <img src="novel3.jpg" alt="novel3">
-                    <div class="history-info">
-                        <h3>Judul novel ketiga</h3>
-                        <p>bab 1</p>
-                    </div>
-                    <button class="btn-hapus">Hapus</button>
-                </li>
-            </ul>
+            <ul class="history-list" id="history-list"></ul>
 
             <p class="kosong hidden" id="history-kosong">Belum ada riwayat bacaan.</p>
         </section>
     </main>
 
     <script src="js/library.js"></script>
+    <script src="js/search.js"></script>
 </body>
 
 </html>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library - Myperpus</title>
+    <title>Explore - Myperpus</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/explore.css">
@@ -45,16 +45,19 @@
             <div class="urutkan">
                 <label for="urutkan">Urutkan: </label>
                 <select id="urutkan">
-                    <option value="terbaru">Terbaru</option>
+                    <option value="popular">Terpopuler</option>
                     <option value="az">Judul A-Z </option>
                 </select>
             </div>
         </div>
 
-        <div class="book-grid" id="book-grid"></div>
+        <div class="book-grid" id="explore-list"></div>
+        <button class="btn-lagi hidden" id="btn-lagi">Tampilkan lebih banyak</button>
 
         <p class="kosong hidden" id="explore-kosong">Belum ada buku di genre ini.</p>
     </main>
 
     <script src="js/explore.js"></script>
+    <script src="js/search.js"></script>
 </body>
+</html>

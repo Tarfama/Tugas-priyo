@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail buku</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/detil.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">MYPERPUS</a>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <a href="index.html">Home</a>
+                <a href="library.html">Library</a>
+                <a href="explore.html">Explore</a>
+            </ul>
+        </nav>
+
+        <div class="kanan">
+            <div class="search">
+                <input type="text" placeholder="Cari...">
+            </div>
+            <div class="profile">
+                <a href="profile.html">
+                    <img src="profile.jpg" alt="Profile">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="detail">
+        <!-- Pesan saat memuat atau gagal -->
+        <p class="pesan" id="pesan">Memuat buku...</p>
+        <!-- Isi halaman, tampil setelah data berhasil diambil -->
+        <div class="hidden" id="isi">
+            <div class="detail-cover">
+                <img id="cover" src="" alt="Cover novel">
+                <h1 id="judul"></h1>
+                <p class="penulis" id="penulis"></p>
+            </div>
+
+            <div class="detail-box">
+                <section class="sinopsis">
+                    <h2>Sinopsis</h2>
+                    <p id="sinopsis-teks"></p>
+                </section>
+
+                <section class="info">
+                    <h2>Informasi</h2>
+                    <p class="label">Genre</p>
+                    <div class="tag-list" id="genre-list"></div>
+                    <p class="label">Subjek</p>
+                    <div class="tag-list" id="subjek-list"></div>
+                    <p class="label">Diunduh</p>
+                    <p id="unduhan"></p>
+
+                    <a class="btn-baca" id="btn-baca" href="#" target="_blank" rel="noopener noreferrer">
+                        Baca Novel
+                    </a>
+                    <button class="btn-bookmark" id="btn-bookmark">
+                        Tambah ke Bookmark
+                    </button>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/detail.js"></script>
+    <script src="js/search.js"></script>
+</body>
+
+</html>

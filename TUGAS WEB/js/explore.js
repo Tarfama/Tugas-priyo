@@ -1,25 +1,83 @@
-// ===== Data contoh (nanti diganti data dari API) =====
-const books = [
-    { id: 1, judul: "Man who looks back", cover: "novel1.jpg", genre: "Drama",    tanggal: "2026-10-01" },
-    { id: 2, judul: "Judul novel dua",    cover: "novel2.jpg", genre: "Fantasi",  tanggal: "2026-09-15" },
-    { id: 3, judul: "Judul novel tiga",   cover: "novel3.jpg", genre: "Romantis", tanggal: "2026-08-20" },
-    { id: 4, judul: "Judul novel empat",  cover: "novel4.jpg", genre: "Drama",    tanggal: "2026-07-05" },
-    { id: 5, judul: "Judul novel lima",   cover: "novel5.jpg", genre: "Fantasi",  tanggal: "2026-10-10" },
-    { id: 6, judul: "Judul novel enam",   cover: "novel6.jpg", genre: "Misteri",  tanggal: "2026-06-30" }
-];
-
 // ===== Elemen halaman =====
 const genreList = document.getElementById("genre-list");
 const exploreList = document.getElementById("explore-list");
 const kosong = document.getElementById("explore-kosong");
 const urutkan = document.getElementById("urutkan");
 
+let books = [];            // diisi dari API
 let genreAktif = "Semua";
+const JUMLAH_AWAL = 12;
+let jumlahTampil = JUMLAH_AWAL;
+const btnLagi = document.getElementById("btn-lagi");
+// kata pencarian dari alamat: explore.html?q=austen
+const kataCari = new URLSearchParams(window.location.search).get("q");
+if (kataCari) {
+    document.querySelector(".explore h1").textContent = "Hasil pencarian: " + kataCari;
+}
 
-// ===== 1. Buat tombol genre dari data buku =====
+// ===== Ambil data dari API =====
+async function ambilBuku() {
+    kosong.textContent = "Memuat buku...";
+    kosong.classList.remove("hidden");
+
+    try {
+        let url = "https://gutendex.com/books?languages=en";
+        if (kataCari) {
+            url += "&search=" + encodeURIComponent(kataCari);
+        }
+
+        const res = await fetch(url);
+
+        if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+
+        books = data.results.map(b => ({
+            id: b.id,
+            judul: b.title,
+            cover: b.formats["image/jpeg"] || "",
+            genres: ambilGenre(b),
+            populer: b.download_count
+        }));
+
+        kosong.textContent = kataCari
+            ? "Buku tidak ditemukan."
+            : "Belum ada buku di genre ini.";
+
+        buatGenre();
+        tampilkan();
+    } catch (err) {
+        kosong.textContent = "Gagal memuat buku: " + err.message;
+    }
+}
+
+// "Category: Romance" -> "Romance"
+function ambilGenre(b) {
+    const daftar = b.bookshelves
+        .filter(s => s.startsWith("Category: "))
+        .map(s => s.replace("Category: ", ""))
+        .filter(g => g !== "Novels");
+    return daftar.length > 0 ? daftar : ["Lainnya"];
+}
+
+function aman(teks) {
+    return String(teks).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
+// ===== 1. Tombol genre =====
 function buatGenre() {
-    // ambil genre unik dari semua buku
-    const semuaGenre = ["Semua", ...new Set(books.map(b => b.genre))];
+    const hitung = {};
+    books.forEach(b => b.genres.forEach(g => {
+        hitung[g] = (hitung[g] || 0) + 1;
+    }));
+
+    const teratas = Object.keys(hitung)
+        .sort((a, b) => hitung[b] - hitung[a])
+        .slice(0, 8);
+
+    const semuaGenre = ["Semua", ...teratas];
 
     genreList.innerHTML = "";
     semuaGenre.forEach(g => {
@@ -28,41 +86,48 @@ function buatGenre() {
         btn.textContent = g;
         btn.addEventListener("click", () => {
             genreAktif = g;
-            buatGenre();     // perbarui tombol yang aktif
-            tampilkan();     // perbarui daftar buku
+            jumlahTampil = JUMLAH_AWAL;
+            buatGenre();
+            tampilkan();
         });
         genreList.appendChild(btn);
     });
 }
 
-// ===== 2. Tampilkan buku sesuai genre dan urutan =====
+// ===== 2. Tampilkan buku =====
 function tampilkan() {
-    // filter genre
-    let hasil = books.filter(b => genreAktif === "Semua" || b.genre === genreAktif);
+    let hasil = books.filter(b => genreAktif === "Semua" || b.genres.includes(genreAktif));
 
-    // urutkan
     const urutan = urutkan.value;
-    if (urutan === "terbaru") {
-        hasil.sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+    if (urutan === "popular") {
+        hasil.sort((a, b) => b.populer - a.populer);
     } else if (urutan === "az") {
         hasil.sort((a, b) => a.judul.localeCompare(b.judul));
-    } else if (urutan === "za") {
-        hasil.sort((a, b) => b.judul.localeCompare(a.judul));
     }
 
-    // buat kartu
-    exploreList.innerHTML = hasil.map(b => `
+    const tampil = hasil.slice(0, jumlahTampil);
+
+    exploreList.innerHTML = tampil.map(b => `
         <a href="detail.html?id=${b.id}" class="book">
-            <img src="${b.cover}" alt="${b.judul}">
-            <p>${b.judul}</p>
-            <span>${b.genre}</span>
+            <img src="${aman(b.cover)}" alt="${aman(b.judul)}">
+            <p>${aman(b.judul)}</p>
+            <span>${aman(b.genres.slice(0, 2).join(", "))}</span>
         </a>
     `).join("");
 
     kosong.classList.toggle("hidden", hasil.length > 0);
+    btnLagi.classList.toggle("hidden", hasil.length <= jumlahTampil);
 }
 
 // ===== Jalankan =====
-urutkan.addEventListener("change", tampilkan);
-buatGenre();
-tampilkan();
+urutkan.addEventListener("change", () => {
+    jumlahTampil = JUMLAH_AWAL;
+    tampilkan();
+});
+
+btnLagi.addEventListener("click", () => {
+    jumlahTampil += 12;
+    tampilkan();
+});
+
+ambilBuku();

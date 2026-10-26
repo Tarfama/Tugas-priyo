@@ -51,7 +51,7 @@ main {
 /*bookmark*/
 .book-grid{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
 }
 
@@ -60,10 +60,11 @@ main {
     color: #333;
 }
 .book img {
-    width: 100%;
+    width: 200px;
     height: 300px;
     object-fit: cover;
     display: block;
+    margin: 0 auto;
 }
 
 .book p{
@@ -140,3 +141,11 @@ main {
     text-align: center;
     color: #555;
 }
+.history-info a {
+    color: #333;
+    text-decoration: none;
+}
+
+.history-info a:hover {
+    text-decoration: underline;
+}   

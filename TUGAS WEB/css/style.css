@@ -99,16 +99,82 @@ h1.hero {
 
 .book-grid1{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 10px;
 }
 .book {
     text-decoration: none;
     color: #333;
 }
+.book p {
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: 500;
+}
 .book img {
-    width: 100%;
+    width: 200px;
     height: 300px;
     object-fit: cover;
     display: block;
+    margin: 0 auto;
+}
+
+/* ===== Saran pencarian ===== */
+.search {
+    position: relative;
+}
+
+.hidden {
+    display: none;
+}
+
+.saran {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 100;
+    list-style: none;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.saran-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.saran-item:hover,
+.saran-item.sorot {
+    background-color: #f0f0f0;
+}
+
+.saran-judul {
+    font-size: 15px;
+    color: #333;
+}
+
+.saran-penulis {
+    font-size: 13px;
+    color: #666;
+}
+
+.saran-semua {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    border-bottom: none;
+}
+
+.saran-info {
+    padding: 12px 14px;
+    font-size: 14px;
+    color: #666;
 }
