@@ -7,6 +7,7 @@
     <title>Myperpus</title>
 
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
 </head>
 
 <body>
@@ -27,10 +28,9 @@
             <div class="search">
                 <input type="text" placeholder="Cari...">
             </div>
-            <div class="profile">
-                <a href="profile.html">
-                    <img src="profile.jpg" alt="Profile">
-                </a>
+            <div class="profile" id="profile-area">
+                <!-- Diganti dinamis oleh auth-header.js -->
+                <a href="login.html" class="btn-login-header">Login</a>
             </div>
         </div>
     </header>
@@ -59,6 +59,7 @@
 
     <script src="js/home.js"></script>
     <script src="js/search.js"></script>
+    <script src="js/auth-header.js"></script>
 </body>
 
 </html>
