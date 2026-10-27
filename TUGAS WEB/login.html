@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — MYPERPUS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">MYPERPUS</a>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <a href="index.html">Home</a>
+                <a href="library.html">Library</a>
+                <a href="explore.html">Explore</a>
+            </ul>
+        </nav>
+
+        <div class="kanan">
+            <div class="search">
+                <input type="text" placeholder="Cari...">
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="auth-container">
+            <div class="auth-card">
+                <h2 class="auth-title">Login</h2>
+                <p class="auth-subtitle">Masuk ke akun MYPERPUS kamu</p>
+
+                <!-- Tempat notifikasi error/success -->
+                <div id="auth-message" class="auth-message hidden"></div>
+
+                <form id="login-form" novalidate>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="contoh@email.com"
+                            required
+                            autocomplete="email"
+                        >
+                        <span class="field-error" id="email-error"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="password-wrapper">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Minimal 8 karakter"
+                                required
+                                autocomplete="current-password"
+                                minlength="8"
+                            >
+                            <button type="button" class="toggle-password" aria-label="Tampilkan password">
+                                👁️
+                            </button>
+                        </div>
+                        <span class="field-error" id="password-error"></span>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="btn-login">
+                        <span class="btn-text">Masuk</span>
+                        <span class="btn-loading hidden">Memproses...</span>
+                    </button>
+                </form>
+
+                <p class="auth-footer">
+                    Belum punya akun? <a href="register.html">Daftar di sini</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/auth.js"></script>
+</body>
+
+</html>
