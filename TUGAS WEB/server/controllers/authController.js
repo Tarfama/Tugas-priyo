@@ -1,5 +1,5 @@
 // ============================================================
-// controllers/authController.js — Logika bisnis autentikasi
+// controllers/authController.js — Logika bisnis autentikasi (SQLite)
 // ============================================================
 // Controller ini menangani:
 //   1. POST /api/auth/register — Registrasi user baru
@@ -13,9 +13,16 @@
 //   ✅ Input divalidasi dan disanitasi sebelum diproses
 // ============================================================
 
-const bcrypt = require('bcrypt');
+// Dukung bcryptjs (pure JS, kompatibel di semua PC) atau bcrypt
+let bcrypt;
+try {
+    bcrypt = require('bcryptjs');
+} catch {
+    bcrypt = require('bcrypt');
+}
+
 const jwt    = require('jsonwebtoken');
-const { pool } = require('../config/database');
+const { db } = require('../config/database');
 const {
     validateLoginInput,
     validateRegisterInput,
@@ -43,16 +50,16 @@ async function register(req, res) {
 
         // --- Langkah 2: Sanitasi & normalisasi input ---
         const cleanUsername = sanitize(username).toLowerCase();
-        const cleanEmail   = email.trim().toLowerCase();
+        const cleanEmail    = email.trim().toLowerCase();
 
         // --- Langkah 3: Cek apakah username/email sudah terdaftar ---
-        // Menggunakan parameterized query (?) untuk mencegah SQL Injection
-        const [existingUsers] = await pool.execute(
+        // Parameterized query (?) mencegah SQL Injection
+        const existingUser = await db.get(
             'SELECT id FROM users WHERE username = ? OR email = ?',
             [cleanUsername, cleanEmail]
         );
 
-        if (existingUsers.length > 0) {
+        if (existingUser) {
             return res.status(409).json({
                 success: false,
                 message: 'Username atau email sudah terdaftar',
@@ -60,13 +67,12 @@ async function register(req, res) {
         }
 
         // --- Langkah 4: Hash password dengan bcrypt ---
-        // Salt rounds = 12 memberikan keseimbangan keamanan & performa
-        // JANGAN PERNAH simpan password plain-text!
-        const saltRounds  = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
+        // JANGAN PERNAH simpan plain-text password!
+        const saltRounds   = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
-        // --- Langkah 5: Simpan user baru ke database ---
-        const [result] = await pool.execute(
+        // --- Langkah 5: Simpan user baru ke database SQLite ---
+        const result = await db.run(
             'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
             [cleanUsername, cleanEmail, passwordHash]
         );
@@ -76,7 +82,7 @@ async function register(req, res) {
             success: true,
             message: 'Registrasi berhasil! Silakan login.',
             data: {
-                id:       result.insertId,
+                id:       result.lastID,
                 username: cleanUsername,
                 email:    cleanEmail,
             },
@@ -84,8 +90,11 @@ async function register(req, res) {
     } catch (error) {
         console.error('[REGISTER ERROR]', error);
 
-        // Handle duplicate entry (MySQL error code 1062)
-        if (error.code === 'ER_DUP_ENTRY') {
+        // Tangani jika terjadi duplicate entry constraint pada SQLite
+        if (
+            (error.message && error.message.includes('UNIQUE constraint failed')) ||
+            error.code === 'SQLITE_CONSTRAINT'
+        ) {
             return res.status(409).json({
                 success: false,
                 message: 'Username atau email sudah terdaftar',
@@ -121,30 +130,27 @@ async function login(req, res) {
 
         // --- Langkah 3: Cari user di database berdasarkan email ---
         // Parameterized query (?) mencegah SQL Injection
-        const [rows] = await pool.execute(
+        const user = await db.get(
             'SELECT id, username, email, password_hash FROM users WHERE email = ?',
             [cleanEmail]
         );
 
         // PENTING: Gunakan GENERIC error message!
         // Jangan beri tahu apakah email yang salah atau password yang salah,
-        // karena itu bisa dimanfaatkan attacker untuk enumerasi akun.
-        if (rows.length === 0) {
+        // agar tidak membocorkan keberadaan akun kepada penyerang (anti user enumeration).
+        if (!user) {
             return res.status(401).json({
                 success: false,
                 message: 'Email atau password salah',
             });
         }
 
-        const user = rows[0];
-
         // --- Langkah 4: Verifikasi password dengan bcrypt.compare() ---
-        // bcrypt.compare() membandingkan plain-text password dengan hash
-        // secara aman (timing-safe comparison)
+        // Membandingkan plain-text password dengan hash secara timing-safe
         const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
         if (!isPasswordValid) {
-            // GENERIC error message — sama dengan jika email tidak ditemukan
+            // Error message sama persis dengan kondisi email tidak ditemukan
             return res.status(401).json({
                 success: false,
                 message: 'Email atau password salah',
@@ -160,7 +166,7 @@ async function login(req, res) {
 
         const token = jwt.sign(
             tokenPayload,
-            process.env.JWT_SECRET,
+            process.env.JWT_SECRET || 'default_secret_dev_key_ganti_di_produksi',
             { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
         );
 
@@ -192,15 +198,15 @@ async function login(req, res) {
 // ─────────────────────────────────────────────────────────────
 async function getProfile(req, res) {
     try {
-        // req.user sudah diisi oleh middleware verifyToken
+        // req.user diisi oleh middleware verifyToken
         const userId = req.user.id;
 
-        const [rows] = await pool.execute(
+        const user = await db.get(
             'SELECT id, username, email, created_at FROM users WHERE id = ?',
             [userId]
         );
 
-        if (rows.length === 0) {
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: 'User tidak ditemukan',
@@ -209,7 +215,7 @@ async function getProfile(req, res) {
 
         return res.status(200).json({
             success: true,
-            data: rows[0],
+            data: user,
         });
     } catch (error) {
         console.error('[PROFILE ERROR]', error);

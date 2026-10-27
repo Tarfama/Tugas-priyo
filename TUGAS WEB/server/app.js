@@ -15,7 +15,7 @@ const rateLimit  = require('express-rate-limit');
 const path       = require('path');
 require('dotenv').config();
 
-const { testConnection } = require('./config/database');
+const { initDb } = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 
 const app = express();
@@ -128,8 +128,8 @@ app.use((err, req, res, _next) => {
 const PORT = process.env.PORT || 3000;
 
 async function startServer() {
-    // Test koneksi database sebelum menjalankan server
-    await testConnection();
+    // Inisialisasi database SQLite (otomatis buat file & tabel jika belum ada)
+    await initDb();
 
     app.listen(PORT, () => {
         console.log(`🚀 Server berjalan di http://localhost:${PORT}`);
