@@ -1,6 +1,7 @@
 /* ============================================================
    css/auth.css — Styling untuk halaman Login & Register
    ============================================================ */
+@import url('navbar-dropdown.css');
 
 /* Container utama — center vertikal & horizontal */
 .auth-container {
