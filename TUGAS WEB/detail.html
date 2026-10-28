@@ -7,6 +7,7 @@
     <title>Detail buku</title>
 
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar-dropdown.css">
     <link rel="stylesheet" href="css/detil.css">
 </head>
 
@@ -28,10 +29,8 @@
             <div class="search">
                 <input type="text" placeholder="Cari...">
             </div>
-            <div class="profile">
-                <a href="profile.html">
-                    <img src="profile.jpg" alt="Profile">
-                </a>
+            <div class="profile" id="profile-area">
+                <!-- Diisi dinamis oleh navbar-dropdown.js -->
             </div>
         </div>
     </header>
@@ -48,33 +47,45 @@
             </div>
 
             <div class="detail-box">
-                <section class="sinopsis">
-                    <h2>Sinopsis</h2>
-                    <p id="sinopsis-teks"></p>
-                </section>
+                <div class="detail-info">
+                    <h2>Informasi buku</h2>
+                    <ul class="info-list">
+                        <li>
+                            <p class="label">Penerbit</p>
+                            <p class="isi" id="penerbit">-</p>
+                        </li>
+                        <li>
+                            <p class="label">Tahun terbit</p>
+                            <p class="isi" id="tahun">-</p>
+                        </li>
+                        <li>
+                            <p class="label">Bahasa</p>
+                            <p class="isi" id="bahasa">-</p>
+                        </li>
+                        <li>
+                            <p class="label">Genre</p>
+                            <p class="isi" id="genre">-</p>
+                        </li>
+                        <li>
+                            <p class="label">Download</p>
+                            <p class="isi" id="unduhan">-</p>
+                        </li>
+                    </ul>
+                </div>
 
-                <section class="info">
-                    <h2>Informasi</h2>
-                    <p class="label">Genre</p>
-                    <div class="tag-list" id="genre-list"></div>
-                    <p class="label">Subjek</p>
-                    <div class="tag-list" id="subjek-list"></div>
-                    <p class="label">Diunduh</p>
-                    <p id="unduhan"></p>
-
-                    <a class="btn-baca" id="btn-baca" href="#" target="_blank" rel="noopener noreferrer">
-                        Baca Novel
-                    </a>
-                    <button class="btn-bookmark" id="btn-bookmark">
-                        Tambah ke Bookmark
+                <div class="detail-aksi">
+                    <button class="btn-aksi" id="btn-bookmark">
+                        <img id="icon-bookmark" src="bookmark.png" alt="bookmark"> Tambah ke bookmark
                     </button>
-                </section>
+                    <a class="btn-aksi btn-baca" id="btn-baca" href="#" target="_blank">Baca sekarang</a>
+                </div>
             </div>
         </div>
     </main>
 
     <script src="js/detail.js"></script>
     <script src="js/search.js"></script>
+    <script src="js/navbar-dropdown.js"></script>
 </body>
 
 </html>
