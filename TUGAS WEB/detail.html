@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail buku</title>
+    <title>Detail Buku - MYPERPUS</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/navbar-dropdown.css">
@@ -38,51 +38,148 @@
     <main class="detail">
         <!-- Pesan saat memuat atau gagal -->
         <p class="pesan" id="pesan">Memuat buku...</p>
+
         <!-- Isi halaman, tampil setelah data berhasil diambil -->
         <div class="hidden" id="isi">
             <div class="detail-cover">
                 <img id="cover" src="" alt="Cover novel">
                 <h1 id="judul"></h1>
                 <p class="penulis" id="penulis"></p>
+                <div id="rating-rata-wrap" style="margin-top: 8px; font-size: 15px; color: #f59e0b; font-weight: 600;"></div>
             </div>
 
             <div class="detail-box">
-                <div class="detail-info">
-                    <h2>Informasi buku</h2>
-                    <ul class="info-list">
-                        <li>
-                            <p class="label">Penerbit</p>
-                            <p class="isi" id="penerbit">-</p>
-                        </li>
-                        <li>
-                            <p class="label">Tahun terbit</p>
-                            <p class="isi" id="tahun">-</p>
-                        </li>
-                        <li>
-                            <p class="label">Bahasa</p>
-                            <p class="isi" id="bahasa">-</p>
-                        </li>
-                        <li>
-                            <p class="label">Genre</p>
-                            <p class="isi" id="genre">-</p>
-                        </li>
-                        <li>
-                            <p class="label">Download</p>
-                            <p class="isi" id="unduhan">-</p>
-                        </li>
-                    </ul>
+                <!-- Kolom Kiri: Sinopsis & Subjek -->
+                <div class="sinopsis">
+                    <h2>Sinopsis</h2>
+                    <p id="sinopsis-teks">Sinopsis belum tersedia.</p>
+
+                    <h2 style="margin-top: 24px;">Subjek</h2>
+                    <div class="tag-list" id="subjek-list"></div>
                 </div>
 
-                <div class="detail-aksi">
-                    <button class="btn-aksi" id="btn-bookmark">
-                        <img id="icon-bookmark" src="bookmark.png" alt="bookmark"> Tambah ke bookmark
-                    </button>
-                    <a class="btn-aksi btn-baca" id="btn-baca" href="#" target="_blank">Baca sekarang</a>
+                <!-- Kolom Kanan: Informasi & Aksi -->
+                <div class="info">
+                    <h2>Informasi Buku</h2>
+
+                    <p class="label">Genre</p>
+                    <div class="tag-list" id="genre-list"></div>
+
+                    <p class="label">Bahasa</p>
+                    <p class="isi" id="bahasa">-</p>
+
+                    <p class="label">Hak Cipta</p>
+                    <p class="isi" id="hak-cipta">-</p>
+
+                    <p class="label">Jumlah Unduhan</p>
+                    <p class="isi" id="unduhan">-</p>
+
+                    <!-- Aksi Baca & Bookmark -->
+                    <div style="margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <a class="btn-baca" id="btn-baca" href="#" target="_blank" rel="noopener noreferrer">Baca Sekarang</a>
+                        <button class="btn-bookmark" id="btn-bookmark">Tambah ke Bookmark</button>
+                    </div>
+
+                    <!-- Status Baca & Koleksi (Untuk User) -->
+                    <div id="user-actions-panel" style="margin-top: 20px; padding: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <label for="select-reading-status" class="label" style="margin-top: 0;">Status Membaca:</label>
+                        <select id="select-reading-status" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 4px; font-size: 14px;">
+                            <option value="none">-- Pilih Status --</option>
+                            <option value="want">Ingin Dibaca</option>
+                            <option value="reading">Sedang Dibaca</option>
+                            <option value="finished">Selesai Dibaca</option>
+                        </select>
+
+                        <div style="margin-top: 14px;">
+                            <button type="button" id="btn-open-collection-modal" style="width: 100%; padding: 8px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; cursor: pointer; color: #334155;">
+                                📁 Masukkan ke Rak / Koleksi...
+                            </button>
+                            <p id="buku-termuat-koleksi" style="font-size: 12px; color: #64748b; margin-top: 6px;"></p>
+                        </div>
+                    </div>
                 </div>
             </div>
+
+            <!-- BAGIAN REVIEW DAN RATING (TAHAP 3) -->
+            <section class="review-section" style="margin-top: 40px; background: #fff; border: 1px solid #ddd; padding: 28px; border-radius: 10px;">
+                <h2>Ulasan & Rating Pembaca</h2>
+                
+                <div id="review-stats-bar" style="display: flex; align-items: center; gap: 16px; margin: 16px 0 24px; padding: 14px; background: #f8fafc; border-radius: 8px;">
+                    <div style="font-size: 32px; font-weight: 700; color: #f59e0b;" id="stat-avg-rating">0.0</div>
+                    <div>
+                        <div id="stat-stars" style="color: #f59e0b; font-size: 18px;">⭐⭐⭐⭐⭐</div>
+                        <div style="font-size: 13px; color: #64748b;" id="stat-total-reviews">Berdasarkan 0 ulasan</div>
+                    </div>
+                </div>
+
+                <!-- Form Ulasan (Khusus User Login) -->
+                <div id="review-form-container">
+                    <form id="form-ulasan" style="margin-bottom: 30px; padding: 18px; border: 1px solid #e2e8f0; border-radius: 8px; background: #fafafa;">
+                        <h3 style="font-size: 16px; margin-bottom: 10px;" id="judul-form-ulasan">Tulis Ulasan Anda</h3>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="display:block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 4px;">Rating (Bintang):</label>
+                            <select id="input-rating" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px;">
+                                <option value="5">⭐⭐⭐⭐⭐ (5 - Sangat Bagus)</option>
+                                <option value="4">⭐⭐⭐⭐ (4 - Bagus)</option>
+                                <option value="3">⭐⭐⭐ (3 - Cukup)</option>
+                                <option value="2">⭐⭐ (2 - Kurang)</option>
+                                <option value="1">⭐ (1 - Buruk)</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="display:block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 4px;">Pendapat Anda (Maks. 1000 karakter):</label>
+                            <textarea id="input-komentar" rows="3" maxlength="1000" placeholder="Ceritakan pendapatmu tentang buku ini..." style="width: 100%; box-sizing: border-box; padding: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; font-size: 14px;"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="submit" id="btn-submit-ulasan" style="padding: 8px 18px; background: #1e293b; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Kirim Ulasan</button>
+                            <button type="button" id="btn-hapus-ulasan" class="hidden" style="padding: 8px 16px; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 6px; font-weight: 600; cursor: pointer;">Hapus Ulasan Saya</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Ajakan Login jika Tamu -->
+                <div id="review-guest-prompt" class="hidden" style="margin-bottom: 24px; padding: 14px; background: #f1f5f9; border-radius: 8px; text-align: center; font-size: 14px;">
+                    Ingin menulis ulasan? <a href="login.html" style="color: #2563eb; font-weight: 600;">Masuk ke akun</a> terlebih dahulu.
+                </div>
+
+                <!-- Daftar Ulasan Pengguna Lain -->
+                <div id="review-list-container">
+                    <div id="review-list" style="display: flex; flex-direction: column; gap: 14px;"></div>
+                    <p id="review-kosong" class="hidden" style="color: #64748b; font-style: italic;">Belum ada ulasan untuk buku ini. Jadilah yang pertama memberikan ulasan!</p>
+                </div>
+            </section>
         </div>
     </main>
 
+    <!-- Modal Tambah ke Koleksi -->
+    <div id="modal-koleksi" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="background: #fff; width: 90%; max-width: 420px; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h3 style="margin-bottom: 12px; font-size: 18px;">Kelola Koleksi Buku</h3>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">Pilih rak/koleksi untuk menyimpan buku ini:</p>
+
+            <div id="modal-koleksi-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 16px;">
+                <p style="color: #64748b;">Memuat koleksi...</p>
+            </div>
+
+            <!-- Form Buat Koleksi Cepat -->
+            <div style="border-top: 1px solid #e2e8f0; padding-top: 12px; margin-bottom: 16px;">
+                <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Buat Koleksi Baru:</label>
+                <div style="display: flex; gap: 6px;">
+                    <input type="text" id="input-koleksi-baru" placeholder="Misal: Novel Favorit" style="flex: 1; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                    <button type="button" id="btn-buat-koleksi-baru" style="padding: 6px 12px; background: #334155; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">Buat</button>
+                </div>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="button" id="btn-tutup-modal-koleksi" style="padding: 6px 16px; background: #e2e8f0; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Selesai</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
     <script src="js/detail.js"></script>
     <script src="js/search.js"></script>
     <script src="js/navbar-dropdown.js"></script>

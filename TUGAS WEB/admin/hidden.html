@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sembunyikan Buku - Admin MYPERPUS</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin-common.js"></script>
+</head>
+
+<body>
+    <aside class="admin-sidebar">
+        <div class="admin-logo"><a href="index.html">MYPERPUS <span>Admin</span></a></div>
+        <ul class="admin-nav">
+            <li><a href="index.html">📊 Dashboard</a></li>
+            <li><a href="users.html">👥 Pengguna</a></li>
+            <li><a href="reviews.html">💬 Moderasi Ulasan</a></li>
+            <li><a href="featured.html">⭐ Buku Pilihan</a></li>
+            <li><a href="hidden.html" class="aktif">🚫 Sembunyikan Buku</a></li>
+            <li><a href="announcements.html">📢 Pengumuman</a></li>
+            <li><a href="logs.html">📜 Log Aktivitas</a></li>
+            <li style="margin-top: auto; border-top: 1px solid #1e293b; padding-top: 10px;">
+                <a href="../index.html" target="_blank">🌐 Buka Website Utama</a>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="admin-topbar-title">Manajemen Buku Tersembunyi (Hidden Books)</div>
+            <div>Halo, <strong id="admin-display-name">Admin</strong></div>
+        </header>
+
+        <main class="admin-content">
+            <!-- Box Cari di Gutendex untuk Disembunyikan -->
+            <div class="admin-box">
+                <div class="admin-box-title">🔍 Cari Buku dari Gutendex untuk Disembunyikan dari Publik</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <input type="text" id="search-gutendex-hide" placeholder="Ketik judul buku atau ID buku yang ingin disembunyikan..." style="flex: 1; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <button class="btn-action danger" id="btn-search-hide">Cari Buku</button>
+                </div>
+                <div id="search-hide-results" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; max-height: 280px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- Daftar Buku yang Sedang Disembunyikan -->
+            <div class="admin-box">
+                <div class="admin-box-title">🚫 Daftar Buku yang Sedang Disembunyikan (Tidak Tampil di Home/Explore/Search)</div>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID Buku</th>
+                                <th>Judul Buku</th>
+                                <th>Alasan Disembunyikan</th>
+                                <th>Waktu</th>
+                                <th>Admin</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hidden-table-body">
+                            <tr><td colspan="6">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        async function loadHiddenBooks() {
+            const tbody = document.getElementById('hidden-table-body');
+            tbody.innerHTML = '<tr><td colspan="6">Memuat...</td></tr>';
+
+            try {
+                const res = await API.get('/api/admin/hidden');
+                const items = res.data || [];
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="color:#64748b;">Tidak ada buku yang sedang disembunyikan. Semua buku Gutendex dapat diakses.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(b => `
+                    <tr>
+                        <td><strong>#${b.book_id}</strong></td>
+                        <td><strong>${aman(b.title)}</strong></td>
+                        <td><span style="color:#dc2626; font-size:13px;">${aman(b.reason || 'Tidak sesuai kebijakan')}</span></td>
+                        <td style="font-size:12px; color:#64748b;">${formatTglWaktu(b.created_at)}</td>
+                        <td>${aman(b.hidden_by || 'Admin')}</td>
+                        <td>
+                            <button class="btn-action primary btn-unhide-book" data-id="${b.book_id}" style="background:#16a34a;">
+                                Tampilkan Kembali
+                            </button>
+                        </td>
+                    </tr>
+                `).join("");
+
+                tbody.querySelectorAll('.btn-unhide-book').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const bId = btn.dataset.id;
+                        if (!confirm('Kembalikan buku ini agar dapat dilihat kembali oleh pengunjung website?')) return;
+                        try {
+                            await API.delete(`/api/admin/hidden/${bId}`);
+                            API.showToast('Buku berhasil ditampilkan kembali', 'success');
+                            loadHiddenBooks();
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="6" style="color:#dc2626;">Error: ${aman(err.message)}</td></tr>`;
+            }
+        }
+
+        // Cari di Gutendex
+        document.getElementById('btn-search-hide').addEventListener('click', async () => {
+            const query = document.getElementById('search-gutendex-hide').value.trim();
+            const resultsArea = document.getElementById('search-hide-results');
+            if (!query) return;
+
+            resultsArea.innerHTML = '<p style="color:#64748b;">Mencari buku...</p>';
+
+            try {
+                const res = await fetch(`https://gutendex.com/books?languages=en&search=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                const list = (data.results || []).slice(0, 8);
+
+                if (list.length === 0) {
+                    resultsArea.innerHTML = '<p style="color:#dc2626;">Buku tidak ditemukan.</p>';
+                    return;
+                }
+
+                resultsArea.innerHTML = list.map(b => {
+                    const author = b.authors && b.authors[0] ? b.authors[0].name : "Anonim";
+                    const cover = b.formats["image/jpeg"] || "";
+                    return `
+                        <div style="border:1px solid #fee2e2; border-radius:8px; padding:10px; text-align:center; background:#fffafa;">
+                            <img src="${aman(cover)}" style="width:70px; height:95px; object-fit:cover; border-radius:4px;" onerror="this.src=''; this.style.background='#cbd5e1';">
+                            <p style="font-size:12px; font-weight:600; margin:6px 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${aman(b.title)}</p>
+                            <small style="color:#64748b; font-size:11px;">${aman(author)} (#${b.id})</small>
+                            <div style="margin-top:8px;">
+                                <button class="btn-action danger btn-hide-this-book" data-id="${b.id}" data-title="${aman(b.title)}" style="width:100%; font-size:11px;">
+                                    🚫 Sembunyikan Buku Ini
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+                resultsArea.querySelectorAll('.btn-hide-this-book').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const bId   = btn.dataset.id;
+                        const title = btn.dataset.title;
+                        const reason= prompt(`Alasan menyembunyikan "${title}":`, "Konten tidak layak atau rusak") || "Kebijakan Administrator";
+
+                        try {
+                            await API.post('/api/admin/hidden', {
+                                book_id: parseInt(bId, 10),
+                                title,
+                                reason
+                            });
+                            API.showToast('Buku berhasil disembunyikan dari publik', 'info');
+                            loadHiddenBooks();
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+            } catch (err) {
+                resultsArea.innerHTML = `<p style="color:#dc2626;">Gagal mencari: ${aman(err.message)}</p>`;
+            }
+        });
+
+        loadHiddenBooks();
+    </script>
+</body>
+
+</html>

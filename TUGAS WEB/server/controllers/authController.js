@@ -1,19 +1,7 @@
 // ============================================================
-// controllers/authController.js — Logika bisnis autentikasi (SQLite)
-// ============================================================
-// Controller ini menangani:
-//   1. POST /api/auth/register — Registrasi user baru
-//   2. POST /api/auth/login    — Login & mendapat JWT token
-//   3. GET  /api/auth/profile  — Mengambil data profil (dilindungi)
-//
-// PRINSIP KEAMANAN:
-//   ✅ Password di-hash dengan bcrypt (salt rounds = 12)
-//   ✅ Parameterized queries mencegah SQL Injection
-//   ✅ Generic error message agar tidak membocorkan info user
-//   ✅ Input divalidasi dan disanitasi sebelum diproses
+// controllers/authController.js — Logika Bisnis Autentikasi (SQLite)
 // ============================================================
 
-// Dukung bcryptjs (pure JS, kompatibel di semua PC) atau bcrypt
 let bcrypt;
 try {
     bcrypt = require('bcryptjs');
@@ -36,9 +24,8 @@ require('dotenv').config();
 // ─────────────────────────────────────────────────────────────
 async function register(req, res) {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, full_name } = req.body;
 
-        // --- Langkah 1: Validasi input ---
         const validation = validateRegisterInput(username, email, password);
         if (!validation.isValid) {
             return res.status(400).json({
@@ -48,12 +35,10 @@ async function register(req, res) {
             });
         }
 
-        // --- Langkah 2: Sanitasi & normalisasi input ---
         const cleanUsername = sanitize(username).toLowerCase();
         const cleanEmail    = email.trim().toLowerCase();
+        const cleanFullName = full_name ? sanitize(full_name).trim() : null;
 
-        // --- Langkah 3: Cek apakah username/email sudah terdaftar ---
-        // Parameterized query (?) mencegah SQL Injection
         const existingUser = await db.get(
             'SELECT id FROM users WHERE username = ? OR email = ?',
             [cleanUsername, cleanEmail]
@@ -66,31 +51,29 @@ async function register(req, res) {
             });
         }
 
-        // --- Langkah 4: Hash password dengan bcrypt ---
-        // JANGAN PERNAH simpan plain-text password!
         const saltRounds   = parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12;
         const passwordHash = await bcrypt.hash(password, saltRounds);
 
-        // --- Langkah 5: Simpan user baru ke database SQLite ---
         const result = await db.run(
-            'INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)',
-            [cleanUsername, cleanEmail, passwordHash]
+            `INSERT INTO users (username, email, password_hash, role, is_active, full_name)
+             VALUES (?, ?, ?, 'user', 1, ?)`,
+            [cleanUsername, cleanEmail, passwordHash, cleanFullName]
         );
 
-        // --- Langkah 6: Response sukses ---
         return res.status(201).json({
             success: true,
             message: 'Registrasi berhasil! Silakan login.',
             data: {
-                id:       result.lastID,
-                username: cleanUsername,
-                email:    cleanEmail,
+                id:        result.lastID,
+                username:  cleanUsername,
+                email:     cleanEmail,
+                role:      'user',
+                full_name: cleanFullName,
             },
         });
     } catch (error) {
         console.error('[REGISTER ERROR]', error);
 
-        // Tangani jika terjadi duplicate entry constraint pada SQLite
         if (
             (error.message && error.message.includes('UNIQUE constraint failed')) ||
             error.code === 'SQLITE_CONSTRAINT'
@@ -109,13 +92,12 @@ async function register(req, res) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 2. LOGIN — Autentikasi user dan berikan JWT token
+// 2. LOGIN — Autentikasi user dan berikan JWT token + role
 // ─────────────────────────────────────────────────────────────
 async function login(req, res) {
     try {
         const { email, password } = req.body;
 
-        // --- Langkah 1: Validasi input ---
         const validation = validateLoginInput(email, password);
         if (!validation.isValid) {
             return res.status(400).json({
@@ -125,19 +107,14 @@ async function login(req, res) {
             });
         }
 
-        // --- Langkah 2: Normalisasi email ---
         const cleanEmail = email.trim().toLowerCase();
 
-        // --- Langkah 3: Cari user di database berdasarkan email ---
-        // Parameterized query (?) mencegah SQL Injection
         const user = await db.get(
-            'SELECT id, username, email, password_hash FROM users WHERE email = ?',
+            'SELECT id, username, email, password_hash, role, is_active, full_name FROM users WHERE email = ?',
             [cleanEmail]
         );
 
-        // PENTING: Gunakan GENERIC error message!
-        // Jangan beri tahu apakah email yang salah atau password yang salah,
-        // agar tidak membocorkan keberadaan akun kepada penyerang (anti user enumeration).
+        // Generic error message jika tidak ditemukan
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -145,23 +122,35 @@ async function login(req, res) {
             });
         }
 
-        // --- Langkah 4: Verifikasi password dengan bcrypt.compare() ---
-        // Membandingkan plain-text password dengan hash secara timing-safe
-        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+        // Cek apakah akun aktif
+        if (Number(user.is_active) !== 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Akun Anda telah dinonaktifkan oleh Administrator.',
+            });
+        }
 
+        // Verifikasi password
+        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
         if (!isPasswordValid) {
-            // Error message sama persis dengan kondisi email tidak ditemukan
             return res.status(401).json({
                 success: false,
                 message: 'Email atau password salah',
             });
         }
 
-        // --- Langkah 5: Buat JWT Token ---
+        // Catat waktu login terakhir
+        try {
+            await db.run("UPDATE users SET last_login_at = datetime('now') WHERE id = ?", [user.id]);
+        } catch (e) {
+            // Abaikan kegagalan update login time agar login tetap sukses
+        }
+
         const tokenPayload = {
             id:       user.id,
             username: user.username,
             email:    user.email,
+            role:     user.role || 'user',
         };
 
         const token = jwt.sign(
@@ -170,15 +159,16 @@ async function login(req, res) {
             { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
         );
 
-        // --- Langkah 6: Response sukses dengan token ---
         return res.status(200).json({
             success: true,
             message: 'Login berhasil!',
             data: {
                 user: {
-                    id:       user.id,
-                    username: user.username,
-                    email:    user.email,
+                    id:        user.id,
+                    username:  user.username,
+                    email:     user.email,
+                    role:      user.role || 'user',
+                    full_name: user.full_name || user.username,
                 },
                 token,
                 expiresIn: process.env.JWT_EXPIRES_IN || '24h',
@@ -198,11 +188,11 @@ async function login(req, res) {
 // ─────────────────────────────────────────────────────────────
 async function getProfile(req, res) {
     try {
-        // req.user diisi oleh middleware verifyToken
         const userId = req.user.id;
 
         const user = await db.get(
-            'SELECT id, username, email, created_at FROM users WHERE id = ?',
+            `SELECT id, username, email, role, is_active, full_name, bio, last_login_at, created_at
+             FROM users WHERE id = ?`,
             [userId]
         );
 

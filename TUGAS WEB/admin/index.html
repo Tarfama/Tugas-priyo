@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Administrator - MYPERPUS</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin-common.js"></script>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <div class="admin-logo">
+            <a href="index.html">MYPERPUS <span>Admin</span></a>
+        </div>
+        <ul class="admin-nav">
+            <li><a href="index.html" class="aktif">📊 Dashboard</a></li>
+            <li><a href="users.html">👥 Pengguna</a></li>
+            <li><a href="reviews.html">💬 Moderasi Ulasan</a></li>
+            <li><a href="featured.html">⭐ Buku Pilihan</a></li>
+            <li><a href="hidden.html">🚫 Sembunyikan Buku</a></li>
+            <li><a href="announcements.html">📢 Pengumuman</a></li>
+            <li><a href="logs.html">📜 Log Aktivitas</a></li>
+            <li style="margin-top: auto; border-top: 1px solid #1e293b; padding-top: 10px;">
+                <a href="../index.html" target="_blank">🌐 Buka Website Utama</a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="admin-topbar-title">Ringkasan Statistik Sistem</div>
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <span style="font-size: 14px;">Halo, <strong id="admin-display-name">Admin</strong></span>
+                <button class="btn-action danger" id="admin-logout-btn">Keluar</button>
+            </div>
+        </header>
+
+        <main class="admin-content">
+            <!-- Stat Cards -->
+            <div class="stat-cards-grid">
+                <div class="stat-card">
+                    <div class="val" id="stat-total-users">0</div>
+                    <div class="lbl">Total Pengguna Terdaftar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" id="stat-new-users">0</div>
+                    <div class="lbl">Pengguna Baru (7 Hari)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" id="stat-total-bookmarks">0</div>
+                    <div class="lbl">Total Buku di-Bookmark</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" id="stat-total-reviews">0</div>
+                    <div class="lbl">Total Ulasan Pembaca</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" id="stat-total-featured">0</div>
+                    <div class="lbl">Buku Pilihan Aktif</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" id="stat-total-hidden">0</div>
+                    <div class="lbl">Buku yang Disembunyikan</div>
+                </div>
+            </div>
+
+            <!-- Two Columns Tables -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <!-- 5 Buku Terbanyak di-Bookmark -->
+                <div class="admin-box">
+                    <div class="admin-box-title">📌 5 Buku Paling Populer (Bookmark)</div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Judul Buku</th>
+                                    <th>Jumlah Simpan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-top-bookmarks">
+                                <tr><td colspan="2">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 5 Buku Paling Banyak Diulas -->
+                <div class="admin-box">
+                    <div class="admin-box-title">⭐ 5 Buku Paling Banyak Diulas</div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Judul Buku</th>
+                                    <th>Rating Rata-rata</th>
+                                    <th>Ulasan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-top-reviews">
+                                <tr><td colspan="3">Memuat data...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aktivitas Log Terbaru -->
+            <div class="admin-box">
+                <div class="admin-box-title">
+                    <span>⚡ Aktivitas Administrator Terbaru</span>
+                    <a href="logs.html" style="font-size: 13px; color: #2563eb; text-decoration: none;">Lihat Semua Log →</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Admin</th>
+                                <th>Aksi</th>
+                                <th>Tipe Target</th>
+                                <th>ID Target</th>
+                                <th>Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-recent-logs">
+                            <tr><td colspan="6">Memuat log...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        async function loadDashboardStats() {
+            try {
+                const res = await API.get('/api/admin/stats');
+                const { overview, top_bookmarked, top_reviewed, recent_logs } = res.data;
+
+                // Stat Cards
+                document.getElementById('stat-total-users').textContent     = overview.total_users;
+                document.getElementById('stat-new-users').textContent       = overview.new_users_7_days;
+                document.getElementById('stat-total-bookmarks').textContent = overview.total_bookmarks;
+                document.getElementById('stat-total-reviews').textContent   = overview.total_reviews;
+                document.getElementById('stat-total-featured').textContent  = overview.total_featured_books;
+                document.getElementById('stat-total-hidden').textContent    = overview.total_hidden_books;
+
+                // Top Bookmarks
+                const tbBookmark = document.getElementById('table-top-bookmarks');
+                if (top_bookmarked.length === 0) {
+                    tbBookmark.innerHTML = '<tr><td colspan="2" style="color:#64748b;">Belum ada data bookmark.</td></tr>';
+                } else {
+                    tbBookmark.innerHTML = top_bookmarked.map(b => `
+                        <tr>
+                            <td><a href="../detail.html?id=${b.book_id}" target="_blank" style="color:#1e293b; font-weight:600;">${aman(b.title)}</a></td>
+                            <td><span class="badge-status active">${b.bookmark_count} kali</span></td>
+                        </tr>
+                    `).join("");
+                }
+
+                // Top Reviews
+                const tbReview = document.getElementById('table-top-reviews');
+                if (top_reviewed.length === 0) {
+                    tbReview.innerHTML = '<tr><td colspan="3" style="color:#64748b;">Belum ada ulasan buku.</td></tr>';
+                } else {
+                    tbReview.innerHTML = top_reviewed.map(b => `
+                        <tr>
+                            <td><a href="../detail.html?id=${b.book_id}" target="_blank" style="color:#1e293b; font-weight:600;">${aman(b.title)}</a></td>
+                            <td><span style="color:#f59e0b; font-weight:700;">⭐ ${b.avg_rating}</span></td>
+                            <td>${b.review_count} ulasan</td>
+                        </tr>
+                    `).join("");
+                }
+
+                // Recent Logs
+                const tbLogs = document.getElementById('table-recent-logs');
+                if (recent_logs.length === 0) {
+                    tbLogs.innerHTML = '<tr><td colspan="6" style="color:#64748b;">Belum ada catatan aktivitas.</td></tr>';
+                } else {
+                    tbLogs.innerHTML = recent_logs.map(l => `
+                        <tr>
+                            <td style="font-size:12px; color:#64748b;">${formatTglWaktu(l.created_at)}</td>
+                            <td><strong>${aman(l.admin_username || 'System')}</strong></td>
+                            <td><code>${aman(l.action)}</code></td>
+                            <td>${aman(l.target_type)}</td>
+                            <td>${aman(l.target_id || '-')}</td>
+                            <td style="font-size:12px; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${aman(l.detail || '-')}</td>
+                        </tr>
+                    `).join("");
+                }
+            } catch (err) {
+                API.showToast('Gagal memuat statistik: ' + err.message, 'error');
+            }
+        }
+
+        loadDashboardStats();
+    </script>
+</body>
+
+</html>
