@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Pengguna - Admin MYPERPUS</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin-common.js"></script>
+</head>
+
+<body>
+    <aside class="admin-sidebar">
+        <div class="admin-logo"><a href="index.html">MYPERPUS <span>Admin</span></a></div>
+        <ul class="admin-nav">
+            <li><a href="index.html">📊 Dashboard</a></li>
+            <li><a href="users.html" class="aktif">👥 Pengguna</a></li>
+            <li><a href="reviews.html">💬 Moderasi Ulasan</a></li>
+            <li><a href="featured.html">⭐ Buku Pilihan</a></li>
+            <li><a href="hidden.html">🚫 Sembunyikan Buku</a></li>
+            <li><a href="announcements.html">📢 Pengumuman</a></li>
+            <li><a href="logs.html">📜 Log Aktivitas</a></li>
+            <li style="margin-top: auto; border-top: 1px solid #1e293b; padding-top: 10px;">
+                <a href="../index.html" target="_blank">🌐 Buka Website Utama</a>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="admin-topbar-title">Manajemen Akun Pengguna</div>
+            <div>Halo, <strong id="admin-display-name">Admin</strong></div>
+        </header>
+
+        <main class="admin-content">
+            <div class="admin-box">
+                <!-- Filter Bar -->
+                <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <input type="text" id="filter-search" placeholder="Cari username, email, nama..." style="padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px; flex: 1; min-width: 200px;">
+                    <select id="filter-role" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        <option value="">Semua Peran</option>
+                        <option value="user">User Biasa</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                    <select id="filter-status" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        <option value="">Semua Status</option>
+                        <option value="1">Aktif</option>
+                        <option value="0">Nonaktif</option>
+                    </select>
+                    <button class="btn-action primary" id="btn-apply-filter">Terapkan Filter</button>
+                </div>
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username / Nama</th>
+                                <th>Email</th>
+                                <th>Peran</th>
+                                <th>Status</th>
+                                <th>Login Terakhir</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr><td colspan="7">Memuat data pengguna...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-bar">
+                    <span id="page-info">Halaman 1</span>
+                    <div class="pagination-controls">
+                        <button class="btn-page" id="btn-prev-page">Sebelumnya</button>
+                        <button class="btn-page" id="btn-next-page">Berikutnya</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        let currentPage = 1;
+        const currentAdminId = (API.getUser() || {}).id;
+
+        async function loadUsers(page = 1) {
+            currentPage = page;
+            const q      = document.getElementById('filter-search').value;
+            const role   = document.getElementById('filter-role').value;
+            const status = document.getElementById('filter-status').value;
+
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '<tr><td colspan="7">Memuat...</td></tr>';
+
+            try {
+                let url = `/api/admin/users?page=${page}&limit=10`;
+                if (q) url += `&q=${encodeURIComponent(q)}`;
+                if (role) url += `&role=${encodeURIComponent(role)}`;
+                if (status) url += `&status=${encodeURIComponent(status)}`;
+
+                const res = await API.get(url);
+                const users = res.data || [];
+                const pag = res.pagination || {};
+
+                document.getElementById('page-info').textContent = `Halaman ${pag.page} dari ${pag.totalPages} (Total ${pag.total} pengguna)`;
+                document.getElementById('btn-prev-page').disabled = !pag.hasPrev;
+                document.getElementById('btn-next-page').disabled = !pag.hasNext;
+
+                if (users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="color:#64748b;">Tidak ada data pengguna yang sesuai.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = users.map(u => {
+                    const isSelf = u.id === currentAdminId;
+                    return `
+                        <tr>
+                            <td>#${u.id}</td>
+                            <td>
+                                <strong>${aman(u.username)}</strong>
+                                ${u.full_name ? `<br><small style="color:#64748b;">${aman(u.full_name)}</small>` : ''}
+                            </td>
+                            <td>${aman(u.email)}</td>
+                            <td><span class="badge-role ${u.role}">${u.role}</span></td>
+                            <td>
+                                <span class="badge-status ${u.is_active ? 'active' : 'inactive'}">
+                                    ${u.is_active ? 'Aktif' : 'Dinonaktifkan'}
+                                </span>
+                            </td>
+                            <td style="font-size:12px; color:#64748b;">${formatTglWaktu(u.last_login_at)}</td>
+                            <td>
+                                ${isSelf ? '<span style="font-size:12px; color:#94a3b8; font-style:italic;">Akun Anda</span>' : `
+                                    <button class="btn-action edit btn-toggle-role" data-id="${u.id}" data-role="${u.role}">
+                                        ${u.role === 'admin' ? 'Jadikan User' : 'Jadikan Admin'}
+                                    </button>
+                                    <button class="btn-action edit btn-toggle-status" data-id="${u.id}" data-status="${u.is_active}">
+                                        ${u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                                    </button>
+                                    <button class="btn-action danger btn-delete-user" data-id="${u.id}" data-username="${aman(u.username)}">
+                                        Hapus
+                                    </button>
+                                `}
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+
+                // Handler Toggle Role
+                tbody.querySelectorAll('.btn-toggle-role').forEach(b => {
+                    b.addEventListener('click', async () => {
+                        const targetId = b.dataset.id;
+                        const newRole  = b.dataset.role === 'admin' ? 'user' : 'admin';
+                        if (!confirm(`Ubah peran pengguna ini menjadi ${newRole.toUpperCase()}?`)) return;
+                        try {
+                            await API.patch(`/api/admin/users/${targetId}`, { role: newRole });
+                            API.showToast('Peran pengguna berhasil diubah', 'success');
+                            loadUsers(currentPage);
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+                // Handler Toggle Status
+                tbody.querySelectorAll('.btn-toggle-status').forEach(b => {
+                    b.addEventListener('click', async () => {
+                        const targetId = b.dataset.id;
+                        const newStatus = Number(b.dataset.status) === 1 ? 0 : 1;
+                        if (!confirm(`Ubah status pengguna ini menjadi ${newStatus === 1 ? 'AKTIF' : 'NONAKTIF'}?`)) return;
+                        try {
+                            await API.patch(`/api/admin/users/${targetId}`, { is_active: newStatus });
+                            API.showToast('Status pengguna berhasil diubah', 'success');
+                            loadUsers(currentPage);
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+                // Handler Delete User
+                tbody.querySelectorAll('.btn-delete-user').forEach(b => {
+                    b.addEventListener('click', async () => {
+                        const targetId = b.dataset.id;
+                        const uname    = b.dataset.username;
+                        if (!confirm(`PERINGATAN: Hapus pengguna "${uname}" beserta SELURUH data bacaan dan ulasannya?`)) return;
+                        try {
+                            await API.delete(`/api/admin/users/${targetId}`);
+                            API.showToast('Pengguna berhasil dihapus', 'info');
+                            loadUsers(currentPage);
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:#dc2626;">Error: ${aman(err.message)}</td></tr>`;
+            }
+        }
+
+        document.getElementById('btn-apply-filter').addEventListener('click', () => loadUsers(1));
+        document.getElementById('btn-prev-page').addEventListener('click', () => { if (currentPage > 1) loadUsers(currentPage - 1); });
+        document.getElementById('btn-next-page').addEventListener('click', () => loadUsers(currentPage + 1));
+
+        loadUsers(1);
+    </script>
+</body>
+
+</html>

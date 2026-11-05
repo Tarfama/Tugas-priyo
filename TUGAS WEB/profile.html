@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil & Pengaturan Akun - MYPERPUS</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/navbar-dropdown.css">
+    <link rel="stylesheet" href="css/auth.css">
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .stat-card .num {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .stat-card .lbl {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .section-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-card h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .danger-card {
+            border-color: #fca5a5;
+            background: #fffafa;
+        }
+
+        .danger-card h2 {
+            color: #dc2626;
+            border-color: #fee2e2;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">MYPERPUS</a>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <a href="index.html">Home</a>
+                <a href="library.html">Library</a>
+                <a href="explore.html">Explore</a>
+            </ul>
+        </nav>
+
+        <div class="kanan">
+            <div class="search">
+                <input type="text" placeholder="Cari...">
+            </div>
+            <div class="profile" id="profile-area"></div>
+        </div>
+    </header>
+
+    <main class="profile-container">
+        <h1 style="font-size: 26px; margin-bottom: 6px;">Akun & Profil Pengguna</h1>
+        <p style="color: #64748b; margin-bottom: 24px;">Kelola informasi pribadi, keamanan kata sandi, dan pantau aktivitas membacamu.</p>
+
+        <!-- 1. Ringkasan Statistik -->
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="num" id="stat-bookmarks">0</div>
+                <div class="lbl">Buku di-Bookmark</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="stat-finished">0</div>
+                <div class="lbl">Buku Selesai Dibaca</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="stat-reading">0</div>
+                <div class="lbl">Sedang Dibaca</div>
+            </div>
+            <div class="stat-card">
+                <div class="num" id="stat-reviews">0</div>
+                <div class="lbl">Ulasan Ditulis</div>
+            </div>
+        </div>
+
+        <!-- 2. Form Edit Profil -->
+        <div class="section-card">
+            <h2>Informasi Pribadi</h2>
+            <form id="form-edit-profil">
+                <div class="form-group">
+                    <label for="prof-username">Username</label>
+                    <input type="text" id="prof-username" required minlength="3" maxlength="50">
+                </div>
+
+                <div class="form-group">
+                    <label for="prof-email">Email (Tidak dapat diubah)</label>
+                    <input type="email" id="prof-email" disabled style="background: #f1f5f9; color: #64748b;">
+                </div>
+
+                <div class="form-group">
+                    <label for="prof-fullname">Nama Lengkap</label>
+                    <input type="text" id="prof-fullname" placeholder="Masukkan nama lengkap Anda">
+                </div>
+
+                <div class="form-group">
+                    <label for="prof-bio">Bio / Tentang Saya</label>
+                    <textarea id="prof-bio" rows="3" placeholder="Tuliskan sedikit tentang diri Anda atau minat membaca..." style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: inherit; box-sizing: border-box;"></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: auto; padding: 10px 24px;">Simpan Perubahan Profil</button>
+            </form>
+        </div>
+
+        <!-- 3. Form Ganti Password -->
+        <div class="section-card">
+            <h2>Keamanan Kata Sandi</h2>
+            <form id="form-ganti-password">
+                <div class="form-group">
+                    <label for="pass-current">Password Saat Ini</label>
+                    <input type="password" id="pass-current" required placeholder="Masukkan password lama">
+                </div>
+
+                <div class="form-group">
+                    <label for="pass-new">Password Baru</label>
+                    <input type="password" id="pass-new" required minlength="8" placeholder="Minimal 8 karakter kombinasi huruf & angka">
+                </div>
+
+                <div class="form-group">
+                    <label for="pass-confirm">Konfirmasi Password Baru</label>
+                    <input type="password" id="pass-confirm" required placeholder="Ulangi password baru">
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: auto; padding: 10px 24px;">Perbarui Password</button>
+            </form>
+        </div>
+
+        <!-- 4. Zona Bahaya: Hapus Akun -->
+        <div class="section-card danger-card">
+            <h2>⚠️ Zona Bahaya (Hapus Akun)</h2>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+                Tindakan ini tidak dapat dibatalkan. Menghapus akun akan menghapus secara permanen seluruh data bookmark, riwayat membaca, status bacaan, rak koleksi, dan ulasan Anda.
+            </p>
+            <form id="form-hapus-akun">
+                <div class="form-group">
+                    <label for="delete-confirm-pass" style="color: #991b1b;">Ketik Password Anda untuk Konfirmasi Penghapusan:</label>
+                    <input type="password" id="delete-confirm-pass" required placeholder="Password Anda" style="border-color: #fca5a5;">
+                </div>
+                <button type="submit" style="padding: 10px 20px; background: #dc2626; color: #fff; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Hapus Akun Saya Secara Permanen
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/navbar-dropdown.js"></script>
+    <script src="js/search.js"></script>
+    <script>
+        // Verifikasi Login
+        if (!API.isLoggedIn()) {
+            window.location.href = 'login.html';
+        }
+
+        async function muatDataProfil() {
+            try {
+                // 1. Data User
+                const userRes = await API.get('/api/auth/profile');
+                const user = userRes.data;
+
+                document.getElementById('prof-username').value = user.username || '';
+                document.getElementById('prof-email').value    = user.email || '';
+                document.getElementById('prof-fullname').value = user.full_name || '';
+                document.getElementById('prof-bio').value      = user.bio || '';
+
+                // 2. Statistik User
+                const statRes = await API.get('/api/me/stats');
+                const stats = statRes.data;
+
+                document.getElementById('stat-bookmarks').textContent = stats.total_bookmarks || 0;
+                document.getElementById('stat-finished').textContent  = stats.total_finished || 0;
+                document.getElementById('stat-reading').textContent   = stats.total_reading || 0;
+                document.getElementById('stat-reviews').textContent   = stats.total_reviews || 0;
+            } catch (err) {
+                API.showToast(err.message, 'error');
+            }
+        }
+
+        // Simpan Profil
+        document.getElementById('form-edit-profil').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username  = document.getElementById('prof-username').value.trim();
+            const full_name = document.getElementById('prof-fullname').value.trim();
+            const bio       = document.getElementById('prof-bio').value.trim();
+
+            try {
+                const res = await API.put('/api/auth/profile', { username, full_name, bio });
+                // Update local storage user data
+                const current = API.getUser() || {};
+                localStorage.setItem('user', JSON.stringify({
+                    ...current,
+                    username: res.data.username,
+                    full_name: res.data.full_name
+                }));
+                API.showToast('Profil berhasil disimpan!', 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } catch (err) {
+                API.showToast(err.message, 'error');
+            }
+        });
+
+        // Ganti Password
+        document.getElementById('form-ganti-password').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const current_password = document.getElementById('pass-current').value;
+            const new_password     = document.getElementById('pass-new').value;
+            const confirm_password = document.getElementById('pass-confirm').value;
+
+            if (new_password !== confirm_password) {
+                API.showToast('Konfirmasi password baru tidak cocok', 'error');
+                return;
+            }
+
+            try {
+                await API.put('/api/auth/password', { current_password, new_password });
+                API.showToast('Password berhasil diperbarui!', 'success');
+                document.getElementById('form-ganti-password').reset();
+            } catch (err) {
+                API.showToast(err.message, 'error');
+            }
+        });
+
+        // Hapus Akun
+        document.getElementById('form-hapus-akun').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('delete-confirm-pass').value;
+            if (!confirm('Apakah Anda BENAR-BENAR YAKIN ingin menghapus akun Anda? Seluruh data tidak dapat dipulihkan.')) {
+                return;
+            }
+
+            try {
+                await API.delete('/api/auth/account', { body: { password } });
+                alert('Akun Anda telah berhasil dihapus. Terima kasih telah menggunakan MYPERPUS.');
+                API.logout(true);
+                window.location.href = 'index.html';
+            } catch (err) {
+                API.showToast(err.message, 'error');
+            }
+        });
+
+        muatDataProfil();
+    </script>
+</body>
+
+</html>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library - Myperpus</title>
+    <title>Library - MYPERPUS</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/navbar-dropdown.css">
@@ -36,33 +36,66 @@
     </header>
 
     <main class="library">
-        <h1>Library</h1>
+        <h1>Library & Aktivitas Membaca</h1>
 
+        <!-- Tab Navigasi -->
         <div class="tabs">
             <button class="tab aktif" data-target="bookmark">Bookmark</button>
-            <button class="tab" data-target="history">History</button>
+            <button class="tab" data-target="history">Riwayat Bacaan</button>
+            <button class="tab" data-target="status-baca">Status Baca</button>
+            <button class="tab" data-target="koleksi">Rak / Koleksi</button>
         </div>
 
-
-        <!--Bookmark-->
+        <!-- 1. Panel Bookmark -->
         <section class="panel" id="bookmark">
+            <div id="bookmark-loading" class="pesan-status hidden">Memuat bookmark...</div>
             <div class="book-grid" id="bookmark-list"></div>
-            <p class="kosong hidden" id="bookmark-kosong">Belum ada bookmark.</p>
+            <p class="kosong hidden" id="bookmark-kosong">Belum ada buku di bookmark Anda.</p>
         </section>
 
-        <!--History-->
+        <!-- 2. Panel History -->
         <section class="panel hidden" id="history">
             <div class="history-top">
                 <p>Terakhir dibaca</p>
-                <button class="btn-hapus-semua" id="hapus-semua">Hapus semua</button>
+                <button class="btn-hapus-semua" id="hapus-semua">Hapus Semua Riwayat</button>
             </div>
 
+            <div id="history-loading" class="pesan-status hidden">Memuat riwayat...</div>
             <ul class="history-list" id="history-list"></ul>
-
             <p class="kosong hidden" id="history-kosong">Belum ada riwayat bacaan.</p>
+        </section>
+
+        <!-- 3. Panel Status Baca (Tahap 2) -->
+        <section class="panel hidden" id="status-baca">
+            <!-- Filter Status -->
+            <div class="status-filters" style="display: flex; gap: 8px; margin-bottom: 20px;">
+                <button class="btn-filter-status aktif" data-status="all">Semua Status</button>
+                <button class="btn-filter-status" data-status="want">Ingin Dibaca</button>
+                <button class="btn-filter-status" data-status="reading">Sedang Dibaca</button>
+                <button class="btn-filter-status" data-status="finished">Selesai Dibaca</button>
+            </div>
+
+            <div id="status-loading" class="pesan-status hidden">Memuat status baca...</div>
+            <div class="book-grid" id="status-list"></div>
+            <p class="kosong hidden" id="status-kosong">Belum ada buku dengan status ini.</p>
+        </section>
+
+        <!-- 4. Panel Koleksi / Rak (Tahap 2) -->
+        <section class="panel hidden" id="koleksi">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <p style="color: #64748b;">Kelompokkan buku favoritmu ke dalam rak pribadi.</p>
+                <button id="btn-tambah-rak" style="padding: 8px 16px; background: #1e293b; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                    + Buat Rak Baru
+                </button>
+            </div>
+
+            <div id="koleksi-loading" class="pesan-status hidden">Memuat koleksi rak...</div>
+            <div id="koleksi-container" style="display: flex; flex-direction: column; gap: 20px;"></div>
+            <p class="kosong hidden" id="koleksi-kosong">Anda belum membuat rak/koleksi buku.</p>
         </section>
     </main>
 
+    <script src="js/api.js"></script>
     <script src="js/library.js"></script>
     <script src="js/search.js"></script>
     <script src="js/navbar-dropdown.js"></script>

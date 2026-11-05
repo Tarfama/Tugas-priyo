@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buku Pilihan Editor - Admin MYPERPUS</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin-common.js"></script>
+</head>
+
+<body>
+    <aside class="admin-sidebar">
+        <div class="admin-logo"><a href="index.html">MYPERPUS <span>Admin</span></a></div>
+        <ul class="admin-nav">
+            <li><a href="index.html">📊 Dashboard</a></li>
+            <li><a href="users.html">👥 Pengguna</a></li>
+            <li><a href="reviews.html">💬 Moderasi Ulasan</a></li>
+            <li><a href="featured.html" class="aktif">⭐ Buku Pilihan</a></li>
+            <li><a href="hidden.html">🚫 Sembunyikan Buku</a></li>
+            <li><a href="announcements.html">📢 Pengumuman</a></li>
+            <li><a href="logs.html">📜 Log Aktivitas</a></li>
+            <li style="margin-top: auto; border-top: 1px solid #1e293b; padding-top: 10px;">
+                <a href="../index.html" target="_blank">🌐 Buka Website Utama</a>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="admin-topbar-title">Manajemen Buku Pilihan (Featured Books)</div>
+            <div>Halo, <strong id="admin-display-name">Admin</strong></div>
+        </header>
+
+        <main class="admin-content">
+            <!-- Box Cari & Tambah dari Gutendex -->
+            <div class="admin-box">
+                <div class="admin-box-title">🔍 Cari Buku dari Gutendex untuk Dijadikan Pilihan</div>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <input type="text" id="search-gutendex" placeholder="Ketik judul buku atau nama penulis..." style="flex: 1; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                    <button class="btn-action primary" id="btn-search-gutendex">Cari Buku</button>
+                </div>
+                <div id="search-results-area" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; max-height: 300px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- Box Daftar Buku Pilihan Saat Ini -->
+            <div class="admin-box">
+                <div class="admin-box-title">⭐ Daftar Rekomendasi Pilihan Editor (Tampil di Home)</div>
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Urutan</th>
+                                <th>Buku</th>
+                                <th>Catatan Editor</th>
+                                <th>Ditambahkan Oleh</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="featured-table-body">
+                            <tr><td colspan="5">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        async function loadFeaturedBooks() {
+            const tbody = document.getElementById('featured-table-body');
+            tbody.innerHTML = '<tr><td colspan="5">Memuat...</td></tr>';
+
+            try {
+                const res = await API.get('/api/admin/featured');
+                const items = res.data || [];
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="color:#64748b;">Belum ada buku pilihan. Cari dan tambahkan buku di atas!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = items.map(b => `
+                    <tr>
+                        <td><strong>#${b.sort_order}</strong></td>
+                        <td style="display:flex; align-items:center; gap:12px;">
+                            <img src="${aman(b.cover)}" alt="cover" style="width:40px; height:55px; object-fit:cover; border-radius:4px;" onerror="this.src=''; this.style.background='#cbd5e1';">
+                            <div>
+                                <a href="../detail.html?id=${b.book_id}" target="_blank" style="color:#1e293b; font-weight:600; text-decoration:none;">${aman(b.title)}</a>
+                                <br><small style="color:#64748b;">${aman(b.authors || 'Penulis Anonim')} (ID: #${b.book_id})</small>
+                            </div>
+                        </td>
+                        <td>${b.note ? `<span class="badge-status active">${aman(b.note)}</span>` : '<span style="color:#94a3b8;">-</span>'}</td>
+                        <td>${aman(b.added_by || 'Admin')}</td>
+                        <td>
+                            <button class="btn-action edit btn-edit-featured" data-id="${b.book_id}" data-note="${aman(b.note || '')}" data-sort="${b.sort_order}">
+                                Edit Urutan/Catatan
+                            </button>
+                            <button class="btn-action danger btn-delete-featured" data-id="${b.book_id}">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `).join("");
+
+                // Edit handler
+                tbody.querySelectorAll('.btn-edit-featured').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const bId   = btn.dataset.id;
+                        const sort  = prompt("Urutan tampil (angka, makin kecil makin awal):", btn.dataset.sort);
+                        if (sort === null) return;
+                        const note  = prompt("Catatan editor singkat (misal: 'Paling Populer', 'Wajib Dibaca'):", btn.dataset.note);
+                        if (note === null) return;
+
+                        try {
+                            await API.put(`/api/admin/featured/${bId}`, { sort_order: parseInt(sort, 10) || 0, note });
+                            API.showToast('Buku pilihan berhasil diperbarui', 'success');
+                            loadFeaturedBooks();
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+                // Delete handler
+                tbody.querySelectorAll('.btn-delete-featured').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const bId = btn.dataset.id;
+                        if (!confirm('Hapus buku ini dari daftar pilihan?')) return;
+                        try {
+                            await API.delete(`/api/admin/featured/${bId}`);
+                            API.showToast('Buku dihapus dari daftar pilihan', 'info');
+                            loadFeaturedBooks();
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" style="color:#dc2626;">Error: ${aman(err.message)}</td></tr>`;
+            }
+        }
+
+        // Cari di Gutendex
+        document.getElementById('btn-search-gutendex').addEventListener('click', async () => {
+            const query = document.getElementById('search-gutendex').value.trim();
+            const resultsArea = document.getElementById('search-results-area');
+            if (!query) return;
+
+            resultsArea.innerHTML = '<p style="color:#64748b;">Mencari buku di Gutendex...</p>';
+
+            try {
+                const res = await fetch(`https://gutendex.com/books?languages=en&search=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                const list = (data.results || []).slice(0, 8);
+
+                if (list.length === 0) {
+                    resultsArea.innerHTML = '<p style="color:#dc2626;">Buku tidak ditemukan di Gutendex.</p>';
+                    return;
+                }
+
+                resultsArea.innerHTML = list.map(b => {
+                    const author = b.authors && b.authors[0] ? b.authors[0].name : "Anonim";
+                    const cover = b.formats["image/jpeg"] || "";
+                    return `
+                        <div style="border:1px solid #e2e8f0; border-radius:8px; padding:10px; text-align:center; background:#fafafa;">
+                            <img src="${aman(cover)}" style="width:70px; height:95px; object-fit:cover; border-radius:4px;" onerror="this.src=''; this.style.background='#cbd5e1';">
+                            <p style="font-size:12px; font-weight:600; margin:6px 0 2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${aman(b.title)}</p>
+                            <small style="color:#64748b; font-size:11px;">${aman(author)}</small>
+                            <div style="margin-top:8px;">
+                                <button class="btn-action primary btn-add-as-featured" data-json='${JSON.stringify({ id: b.id, title: b.title, cover, authors: author })}' style="width:100%; font-size:11px;">
+                                    + Jadikan Pilihan
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+
+                resultsArea.querySelectorAll('.btn-add-as-featured').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const item = JSON.parse(btn.dataset.json);
+                        const note = prompt(`Tambahkan catatan rekomendasi untuk "${item.title}":`, "Pilihan Editor") || "";
+                        const sort = prompt("Nomor urut tampil (misal: 1, 2, 3):", "1") || "0";
+
+                        try {
+                            await API.post('/api/admin/featured', {
+                                book_id: item.id,
+                                title: item.title,
+                                cover: item.cover,
+                                authors: item.authors,
+                                note,
+                                sort_order: parseInt(sort, 10) || 0
+                            });
+                            API.showToast('Buku berhasil ditambahkan ke daftar pilihan!', 'success');
+                            loadFeaturedBooks();
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+            } catch (err) {
+                resultsArea.innerHTML = `<p style="color:#dc2626;">Gagal mencari: ${aman(err.message)}</p>`;
+            }
+        });
+
+        loadFeaturedBooks();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderasi Ulasan - Admin MYPERPUS</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin-common.js"></script>
+</head>
+
+<body>
+    <aside class="admin-sidebar">
+        <div class="admin-logo"><a href="index.html">MYPERPUS <span>Admin</span></a></div>
+        <ul class="admin-nav">
+            <li><a href="index.html">📊 Dashboard</a></li>
+            <li><a href="users.html">👥 Pengguna</a></li>
+            <li><a href="reviews.html" class="aktif">💬 Moderasi Ulasan</a></li>
+            <li><a href="featured.html">⭐ Buku Pilihan</a></li>
+            <li><a href="hidden.html">🚫 Sembunyikan Buku</a></li>
+            <li><a href="announcements.html">📢 Pengumuman</a></li>
+            <li><a href="logs.html">📜 Log Aktivitas</a></li>
+            <li style="margin-top: auto; border-top: 1px solid #1e293b; padding-top: 10px;">
+                <a href="../index.html" target="_blank">🌐 Buka Website Utama</a>
+            </li>
+        </ul>
+    </aside>
+
+    <div class="admin-main">
+        <header class="admin-topbar">
+            <div class="admin-topbar-title">Moderasi Ulasan & Rating Buku</div>
+            <div>Halo, <strong id="admin-display-name">Admin</strong></div>
+        </header>
+
+        <main class="admin-content">
+            <div class="admin-box">
+                <!-- Filter Status -->
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <select id="filter-review-status" style="padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        <option value="">Semua Status Ulasan</option>
+                        <option value="visible">Hanya Tampil (Visible)</option>
+                        <option value="hidden">Disembunyikan (Hidden)</option>
+                    </select>
+                    <button class="btn-action primary" id="btn-filter-reviews">Terapkan</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Buku</th>
+                                <th>Penulis Ulasan</th>
+                                <th>Rating</th>
+                                <th>Isi Ulasan</th>
+                                <th>Status</th>
+                                <th>Tanggal</th>
+                                <th>Aksi Moderasi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-table-body">
+                            <tr><td colspan="7">Memuat ulasan...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination-bar">
+                    <span id="page-info">Halaman 1</span>
+                    <div class="pagination-controls">
+                        <button class="btn-page" id="btn-prev">Sebelumnya</button>
+                        <button class="btn-page" id="btn-next">Berikutnya</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/api.js"></script>
+    <script>
+        let curPage = 1;
+
+        async function loadReviews(page = 1) {
+            curPage = page;
+            const status = document.getElementById('filter-review-status').value;
+            const tbody  = document.getElementById('reviews-table-body');
+            tbody.innerHTML = '<tr><td colspan="7">Memuat ulasan...</td></tr>';
+
+            try {
+                let url = `/api/admin/reviews?page=${page}&limit=10`;
+                if (status) url += `&status=${status}`;
+
+                const res = await API.get(url);
+                const reviews = res.data || [];
+                const pag = res.pagination || {};
+
+                document.getElementById('page-info').textContent = `Halaman ${pag.page} dari ${pag.totalPages} (Total ${pag.total} ulasan)`;
+                document.getElementById('btn-prev').disabled = !pag.hasPrev;
+                document.getElementById('btn-next').disabled = !pag.hasNext;
+
+                if (reviews.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="color:#64748b;">Tidak ada ulasan ditemukan.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = reviews.map(r => `
+                    <tr>
+                        <td>
+                            <a href="../detail.html?id=${r.book_id}" target="_blank" style="color:#1e293b; font-weight:600;">${aman(r.book_title)}</a>
+                            <br><small style="color:#64748b;">ID: #${r.book_id}</small>
+                        </td>
+                        <td>
+                            <strong>${aman(r.username)}</strong>
+                            <br><small style="color:#64748b;">${aman(r.email)}</small>
+                        </td>
+                        <td><span style="color:#f59e0b; font-weight:700;">${'⭐'.repeat(r.rating)} (${r.rating})</span></td>
+                        <td style="max-width: 300px; font-size:13px; color:#334155;">
+                            ${aman(r.content || '(Tanpa komentar)')}
+                        </td>
+                        <td>
+                            <span class="badge-status ${r.status === 'visible' ? 'active' : 'inactive'}">
+                                ${r.status === 'visible' ? 'Tampil' : 'Disembunyikan'}
+                            </span>
+                        </td>
+                        <td style="font-size:12px; color:#64748b;">${formatTglWaktu(r.created_at)}</td>
+                        <td>
+                            <button class="btn-action edit btn-toggle-visibility" data-id="${r.id}" data-status="${r.status}">
+                                ${r.status === 'visible' ? 'Sembunyikan' : 'Tampilkan'}
+                            </button>
+                            <button class="btn-action danger btn-delete-review" data-id="${r.id}">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `).join("");
+
+                // Handler Toggle Visibility
+                tbody.querySelectorAll('.btn-toggle-visibility').forEach(b => {
+                    b.addEventListener('click', async () => {
+                        const rId = b.dataset.id;
+                        const newStatus = b.dataset.status === 'visible' ? 'hidden' : 'visible';
+                        try {
+                            await API.patch(`/api/admin/reviews/${rId}`, { status: newStatus });
+                            API.showToast(`Ulasan berhasil di-${newStatus === 'hidden' ? 'sembunyikan' : 'tampilkan'}`, 'success');
+                            loadReviews(curPage);
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+                // Handler Delete
+                tbody.querySelectorAll('.btn-delete-review').forEach(b => {
+                    b.addEventListener('click', async () => {
+                        const rId = b.dataset.id;
+                        if (!confirm('Hapus ulasan ini secara permanen?')) return;
+                        try {
+                            await API.delete(`/api/reviews/${rId}`);
+                            API.showToast('Ulasan berhasil dihapus', 'info');
+                            loadReviews(curPage);
+                        } catch (err) {
+                            API.showToast(err.message, 'error');
+                        }
+                    });
+                });
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" style="color:#dc2626;">Error: ${aman(err.message)}</td></tr>`;
+            }
+        }
+
+        document.getElementById('btn-filter-reviews').addEventListener('click', () => loadReviews(1));
+        document.getElementById('btn-prev').addEventListener('click', () => { if (curPage > 1) loadReviews(curPage - 1); });
+        document.getElementById('btn-next').addEventListener('click', () => loadReviews(curPage + 1));
+
+        loadReviews(1);
+    </script>
+</body>
+
+</html>

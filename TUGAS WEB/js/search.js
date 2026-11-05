@@ -1,24 +1,33 @@
-// ===== Pencarian di navbar dengan saran (dipakai semua halaman) =====
+// ============================================================
+// js/search.js — Pencarian Navbar (Filter Buku Tersembunyi)
+// ============================================================
+
 const kolomCari = document.querySelector(".search input");
 
 if (kolomCari) {
     const wadahCari = kolomCari.parentElement;
 
-    // kotak saran dibuat lewat JavaScript, HTML tidak perlu diubah
     const kotakSaran = document.createElement("ul");
     kotakSaran.className = "saran hidden";
     wadahCari.appendChild(kotakSaran);
 
-    let timer = null;          // jeda sebelum mencari
-    let permintaanKe = 0;      // supaya hasil lama tidak menimpa hasil baru
-    let pilihan = -1;          // saran yang sedang disorot (panah)
+    let timer = null;
+    let permintaanKe = 0;
+    let pilihan = -1;
+    let hiddenBookIds = [];
+
+    // Ambil daftar tersembunyi sekali
+    fetch('/api/catalog/hidden')
+        .then(r => r.json())
+        .then(d => { if (d.data) hiddenBookIds = d.data; })
+        .catch(() => {});
 
     function aman(teks) {
-        return String(teks).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+        return String(teks || '').replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
     }
 
-    // "Austen, Jane" -> "Jane Austen"
     function rapikanNama(nama) {
+        if (!nama) return "Penulis tidak diketahui";
         const bagian = nama.split(", ");
         return bagian.length === 2 ? bagian[1] + " " + bagian[0] : nama;
     }
@@ -33,16 +42,18 @@ if (kolomCari) {
         window.location.href = "explore.html?q=" + encodeURIComponent(kata);
     }
 
-    // tampilkan daftar saran
     function tampilkanSaran(kata, buku) {
-        if (buku.length === 0) {
+        // Filter buku yang disembunyikan
+        const filtered = (buku || []).filter(b => !hiddenBookIds.includes(b.id));
+
+        if (filtered.length === 0) {
             kotakSaran.innerHTML = '<li class="saran-info">Buku tidak ditemukan</li>';
             kotakSaran.classList.remove("hidden");
             return;
         }
 
-        const item = buku.slice(0, 6).map(b => {
-            const penulis = b.authors[0] ? rapikanNama(b.authors[0].name) : "Penulis tidak diketahui";
+        const item = filtered.slice(0, 6).map(b => {
+            const penulis = b.authors && b.authors[0] ? rapikanNama(b.authors[0].name) : "Penulis tidak diketahui";
             return `
                 <li class="saran-item" data-href="detail.html?id=${b.id}">
                     <span class="saran-judul">${aman(b.title)}</span>
@@ -60,7 +71,6 @@ if (kolomCari) {
         pilihan = -1;
     }
 
-    // cari ke API
     async function cariSaran(kata) {
         const ini = ++permintaanKe;
         try {
@@ -70,7 +80,6 @@ if (kolomCari) {
             if (!res.ok) throw new Error("HTTP " + res.status);
             const data = await res.json();
 
-            // abaikan kalau sudah ada pencarian yang lebih baru
             if (ini !== permintaanKe) return;
             tampilkanSaran(kata, data.results);
         } catch (err) {
@@ -80,7 +89,6 @@ if (kolomCari) {
         }
     }
 
-    // saat mengetik
     kolomCari.addEventListener("input", () => {
         const kata = kolomCari.value.trim();
         clearTimeout(timer);
@@ -91,16 +99,11 @@ if (kolomCari) {
             return;
         }
 
-        // tunggu 300 ms setelah berhenti mengetik, supaya API tidak dibanjiri
-                // tampilkan "Mencari..." langsung, jawaban API menyusul
         kotakSaran.innerHTML = '<li class="saran-info">Mencari...</li>';
         kotakSaran.classList.remove("hidden");
-
-        // tunggu 300 ms setelah berhenti mengetik, supaya API tidak dibanjiri
         timer = setTimeout(() => cariSaran(kata), 300);
     });
 
-    // klik saran
     kotakSaran.addEventListener("click", e => {
         const item = e.target.closest(".saran-item");
         if (!item) return;
@@ -112,7 +115,6 @@ if (kolomCari) {
         }
     });
 
-    // sorot saran dengan panah
     function sorot() {
         const semua = kotakSaran.querySelectorAll(".saran-item");
         semua.forEach((el, i) => el.classList.toggle("sorot", i === pilihan));
@@ -132,25 +134,21 @@ if (kolomCari) {
         } else if (e.key === "Escape") {
             tutupSaran();
         } else if (e.key === "Enter") {
-            // kalau ada saran yang disorot, buka saran itu
             if (pilihan >= 0 && semua[pilihan]) {
                 semua[pilihan].click();
                 return;
             }
-            // kalau tidak, ke halaman hasil di Explore
             const kata = kolomCari.value.trim();
             if (kata) keHasil(kata);
         }
     });
 
-    // klik di luar kotak pencarian -> saran tertutup
     document.addEventListener("click", e => {
         if (!wadahCari.contains(e.target)) {
             tutupSaran();
         }
     });
 
-    // isi kolom dengan kata yang sedang dicari (di halaman hasil)
     const kataSekarang = new URLSearchParams(window.location.search).get("q");
     if (kataSekarang) {
         kolomCari.value = kataSekarang;

@@ -1,21 +1,19 @@
 // ============================================================
-// middleware/authMiddleware.js — Middleware verifikasi JWT
-// ============================================================
-// Digunakan pada route-route yang memerlukan autentikasi.
-// Memverifikasi token dari header Authorization: Bearer <token>
+// middleware/authMiddleware.js — Middleware Verifikasi JWT & Role
 // ============================================================
 
-const jwt = require('jsonwebtoken');
+const jwt    = require('jsonwebtoken');
+const { db } = require('../config/database');
 require('dotenv').config();
 
 /**
  * Middleware: Verifikasi JWT Token
- * Mengekstrak token dari header, memvalidasi, dan menyimpan
- * data user di req.user agar bisa diakses handler berikutnya.
+ * - Mengekstrak token dari header Authorization: Bearer <token>
+ * - Memverifikasi validitas token JWT
+ * - Memeriksa status akun (is_active) langsung dari database
  */
-function verifyToken(req, res, next) {
+async function verifyToken(req, res, next) {
     try {
-        // --- 1. Ambil header Authorization ---
         const authHeader = req.headers['authorization'];
 
         if (!authHeader) {
@@ -25,9 +23,7 @@ function verifyToken(req, res, next) {
             });
         }
 
-        // --- 2. Ekstrak token dari format "Bearer <token>" ---
         const parts = authHeader.split(' ');
-
         if (parts.length !== 2 || parts[0] !== 'Bearer') {
             return res.status(401).json({
                 success: false,
@@ -36,21 +32,39 @@ function verifyToken(req, res, next) {
         }
 
         const token = parts[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_secret_dev_key_ganti_di_produksi');
 
-        // --- 3. Verifikasi dan decode token ---
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // Cek langsung status user terbaru di database (jangan hanya percaya token lama)
+        const user = await db.get(
+            'SELECT id, username, email, role, is_active FROM users WHERE id = ?',
+            [decoded.id]
+        );
 
-        // Simpan payload user ke request object
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'User pemilik token ini sudah tidak ada.',
+            });
+        }
+
+        if (Number(user.is_active) !== 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Akun Anda telah dinonaktifkan oleh Administrator.',
+            });
+        }
+
+        // Lampirkan data user ke request
         req.user = {
-            id:       decoded.id,
-            username: decoded.username,
-            email:    decoded.email,
+            id:        user.id,
+            username:  user.username,
+            email:     user.email,
+            role:      user.role || 'user',
+            is_active: user.is_active,
         };
 
-        // Lanjut ke handler berikutnya
         next();
     } catch (error) {
-        // Token expired
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({
                 success: false,
@@ -58,7 +72,6 @@ function verifyToken(req, res, next) {
             });
         }
 
-        // Token tidak valid / dimanipulasi
         return res.status(401).json({
             success: false,
             message: 'Token tidak valid.',
@@ -66,4 +79,69 @@ function verifyToken(req, res, next) {
     }
 }
 
-module.exports = { verifyToken };
+/**
+ * Middleware: Memeriksa apakah user adalah Admin
+ * Wajib dijalankan SETELAH verifyToken.
+ * Membaca role dan is_active terbaru dari database.
+ */
+async function requireAdmin(req, res, next) {
+    try {
+        if (!req.user || !req.user.id) {
+            return res.status(401).json({
+                success: false,
+                message: 'Autentikasi diperlukan.',
+            });
+        }
+
+        // Ambil data fresh dari database untuk memastikan role dan status aktif
+        const freshUser = await db.get(
+            'SELECT role, is_active FROM users WHERE id = ?',
+            [req.user.id]
+        );
+
+        if (!freshUser || Number(freshUser.is_active) !== 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'Akun Anda tidak aktif atau tidak ditemukan.',
+            });
+        }
+
+        if (freshUser.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: 'Akses terlarang. Halaman atau aksi ini hanya untuk Administrator.',
+            });
+        }
+
+        req.user.role = freshUser.role;
+        next();
+    } catch (error) {
+        console.error('[requireAdmin Error]', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Terjadi kesalahan saat memverifikasi hak akses admin.',
+        });
+    }
+}
+
+/**
+ * Helper untuk mencatat log audit aksi admin
+ */
+async function recordAuditLog(adminId, action, targetType, targetId = null, detail = null) {
+    try {
+        const detailStr = detail && typeof detail === 'object' ? JSON.stringify(detail) : (detail ? String(detail) : null);
+        await db.run(
+            `INSERT INTO audit_logs (admin_id, action, target_type, target_id, detail)
+             VALUES (?, ?, ?, ?, ?)`,
+            [adminId, action, targetType, targetId ? String(targetId) : null, detailStr]
+        );
+    } catch (err) {
+        console.error('[Audit Log Error]', err.message);
+    }
+}
+
+module.exports = {
+    verifyToken,
+    requireAdmin,
+    recordAuditLog,
+};
