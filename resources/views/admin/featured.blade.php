@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 
 <head>
@@ -13,15 +13,15 @@
     <aside class="admin-sidebar">
         <div class="admin-logo"><a href="index.html">MYPERPUS <span>Admin</span></a></div>
         <ul class="admin-nav">
-            <li><a href="index.html">📊 Dashboard</a></li>
-            <li><a href="users.html">👥 Pengguna</a></li>
-            <li><a href="reviews.html">💬 Moderasi Ulasan</a></li>
-            <li><a href="featured.html" class="aktif">⭐ Buku Pilihan</a></li>
-            <li><a href="hidden.html">🚫 Sembunyikan Buku</a></li>
-            <li><a href="announcements.html">📢 Pengumuman</a></li>
-            <li><a href="logs.html">📜 Log Aktivitas</a></li>
+            <li><a href="index.html">?? Dashboard</a></li>
+            <li><a href="users.html">?? Pengguna</a></li>
+            <li><a href="reviews.html">?? Moderasi Ulasan</a></li>
+            <li><a href="featured.html" class="aktif">? Buku Pilihan</a></li>
+            <li><a href="hidden.html">?? Sembunyikan Buku</a></li>
+            <li><a href="announcements.html">?? Pengumuman</a></li>
+            <li><a href="logs.html">?? Log Aktivitas</a></li>
             <li style="margin-top: auto; border-top: 1px solid #1e293b; padding-top: 10px;">
-                <a href="../index.html" target="_blank">🌐 Buka Website Utama</a>
+                <a href="../index.html" target="_blank">?? Buka Website Utama</a>
             </li>
         </ul>
     </aside>
@@ -35,7 +35,7 @@
         <main class="admin-content">
             <!-- Box Cari & Tambah dari Gutendex -->
             <div class="admin-box">
-                <div class="admin-box-title">🔍 Cari Buku dari Gutendex untuk Dijadikan Pilihan</div>
+                <div class="admin-box-title">?? Cari Buku dari Gutendex untuk Dijadikan Pilihan</div>
                 <div style="display: flex; gap: 10px; margin-bottom: 16px;">
                     <input type="text" id="search-gutendex" placeholder="Ketik judul buku atau nama penulis..." style="flex: 1; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
                     <button class="btn-action primary" id="btn-search-gutendex">Cari Buku</button>
@@ -45,7 +45,7 @@
 
             <!-- Box Daftar Buku Pilihan Saat Ini -->
             <div class="admin-box">
-                <div class="admin-box-title">⭐ Daftar Rekomendasi Pilihan Editor (Tampil di Home)</div>
+                <div class="admin-box-title">? Daftar Rekomendasi Pilihan Editor (Tampil di Home)</div>
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
@@ -152,7 +152,7 @@
             resultsArea.innerHTML = '<p style="color:#64748b;">Mencari buku di Gutendex...</p>';
 
             try {
-                const res = await fetch(`https://gutendex.com/books?languages=en&search=${encodeURIComponent(query)}`);
+                const res = await fetch(`/api/gutendex/books?languages=en&search=${encodeURIComponent(query)}`);
                 const data = await res.json();
                 const list = (data.results || []).slice(0, 8);
 

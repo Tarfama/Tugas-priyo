@@ -25,8 +25,15 @@ function isiDaftar(wadah, buku) {
     `).join("");
 }
 
+// Tampilkan skeleton placeholder sebelum data tiba
+function tampilSkeleton(wadah, jumlah = 4) {
+    wadah.innerHTML = Array(jumlah).fill(
+        '<div class="book-skeleton"></div>'
+    ).join("");
+}
+
 async function ambil(url, wadah) {
-    wadah.textContent = "Memuat...";
+    tampilSkeleton(wadah);
     try {
         const res = await fetch(url);
         if (!res.ok) throw new Error("HTTP " + res.status);
@@ -137,10 +144,12 @@ async function muatSemua() {
     await muatTerakhirDibaca();
     await muatPilihanAdmin();
 
-    // Katalog Gutendex
-    await ambil("https://gutendex.com/books?languages=en", listPopuler);
-    await ambil("https://gutendex.com/books?languages=en&topic=adventure", listAdventure);
-    await ambil("https://gutendex.com/books?languages=en&topic=romance", listRomance);
+    // Katalog Gutendex — lewat proxy lokal (cache 10 menit) & dijalankan paralel
+    await Promise.all([
+        ambil("/api/gutendex/books?languages=en", listPopuler),
+        ambil("/api/gutendex/books?languages=en&topic=adventure", listAdventure),
+        ambil("/api/gutendex/books?languages=en&topic=romance", listRomance),
+    ]);
 }
 
 muatSemua();

@@ -9,6 +9,9 @@ use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\ReadingStatusController;
 use App\Http\Controllers\Api\ReviewController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 
 // Health Check
@@ -18,6 +21,65 @@ Route::get('/health', function () {
         'message'   => 'Server MYPERPUS (Laravel) berjalan dengan baik',
         'timestamp' => now()->toIso8601String(),
     ]);
+});
+
+// ═══════════════════════════════════════════════════════════
+// 🚀 Proxy Gutendex dengan Server-Side Cache
+// Cache selama 10 menit untuk daftar buku, 1 jam untuk detail
+// Frontend cukup panggil /api/gutendex/* — tidak perlu ke internet langsung
+// ═══════════════════════════════════════════════════════════
+
+// Daftar buku (dengan filter: search, topic, languages, page)
+Route::get('/gutendex/books', function (Request $request) {
+    // Ambil hanya parameter yang diizinkan
+    $params   = $request->only(['search', 'topic', 'languages', 'page']);
+    $cacheKey = 'gutendex_list_' . md5(json_encode($params));
+
+    $data = Cache::remember($cacheKey, 600, function () use ($params) {
+        $response = Http::timeout(15)
+            ->get('https://gutendex.com/books', $params);
+
+        if ($response->failed()) {
+            return null;
+        }
+        return $response->json();
+    });
+
+    if (is_null($data)) {
+        return response()->json(['success' => false, 'message' => 'Gagal mengambil data dari Gutendex.'], 502);
+    }
+
+    return response()->json($data);
+});
+
+// Detail satu buku berdasarkan ID
+Route::get('/gutendex/books/{id}', function (string $id) {
+    // Validasi: hanya angka
+    if (!ctype_digit($id)) {
+        return response()->json(['success' => false, 'message' => 'ID buku tidak valid.'], 400);
+    }
+
+    $data = Cache::remember("gutendex_book_{$id}", 3600, function () use ($id) {
+        $response = Http::timeout(15)
+            ->get("https://gutendex.com/books/{$id}");
+
+        if ($response->status() === 404) {
+            return ['__not_found' => true];
+        }
+        if ($response->failed()) {
+            return null;
+        }
+        return $response->json();
+    });
+
+    if (is_null($data)) {
+        return response()->json(['success' => false, 'message' => 'Gagal mengambil data dari Gutendex.'], 502);
+    }
+    if (isset($data['__not_found'])) {
+        return response()->json(['success' => false, 'message' => 'Buku tidak ditemukan.'], 404);
+    }
+
+    return response()->json($data);
 });
 
 // ── Autentikasi Publik ──────────────────────────────────────
