@@ -1,5 +1,5 @@
 // ============================================================
-// js/detail.js — Logika Halaman Detail Buku (Dual Mode: Tamu & User)
+// js/detail.js  ELogika Halaman Detail Buku (Dual Mode: Tamu & User)
 // ============================================================
 
 const pesan = document.getElementById("pesan");
@@ -34,12 +34,12 @@ async function ambilBuku() {
 
     const isHidden = await cekBukuTersembunyi(id);
     if (isHidden) {
-        pesan.innerHTML = `<span style="color:#dc2626; font-weight:bold;">⚠️ Buku tidak tersedia.</span><br><small style="color:#64748b;">Buku ini telah dinonaktifkan atau disembunyikan oleh Administrator.</small>`;
+        pesan.innerHTML = `<span style="color:#dc2626; font-weight:bold;">⚠�E�EBuku tidak tersedia.</span><br><small style="color:#64748b;">Buku ini telah dinonaktifkan atau disembunyikan oleh Administrator.</small>`;
         return;
     }
 
     try {
-        const res = await fetch("https://gutendex.com/books/" + encodeURIComponent(id));
+        const res = await fetch("/api/gutendex/books/" + encodeURIComponent(id));
 
         if (res.status === 404) {
             pesan.textContent = "Buku tidak ditemukan.";
@@ -428,10 +428,10 @@ async function setupReviewSection(buku, loggedIn) {
 
             if (statAvg)   statAvg.textContent = avg.toFixed(1);
             if (statTotal) statTotal.textContent = `Berdasarkan ${total} ulasan`;
-            if (statStars) statStars.textContent = '⭐'.repeat(Math.round(avg)) || '☆☆☆☆☆';
+            if (statStars) statStars.textContent = '⭁E.repeat(Math.round(avg)) || '☁E�E☁E�E☁E;
 
             if (ratingTopEl && total > 0) {
-                ratingTopEl.innerHTML = `⭐ <strong>${avg.toFixed(1)}</strong> / 5.0 (${total} ulasan)`;
+                ratingTopEl.innerHTML = `⭁E<strong>${avg.toFixed(1)}</strong> / 5.0 (${total} ulasan)`;
             }
 
             const reviews = data.data || [];
@@ -444,7 +444,7 @@ async function setupReviewSection(buku, loggedIn) {
                     <div style="padding: 12px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <strong>${aman(r.full_name || r.username)}</strong>
-                            <span style="color: #f59e0b; font-size: 13px;">${'⭐'.repeat(r.rating)}</span>
+                            <span style="color: #f59e0b; font-size: 13px;">${'⭁E.repeat(r.rating)}</span>
                         </div>
                         <p style="font-size: 14px; color: #334155; margin: 4px 0;">${aman(r.content || '(Tidak ada komentar tertulis)')}</p>
                         <small style="font-size: 11px; color: #94a3b8;">${new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</small>

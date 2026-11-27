@@ -1,5 +1,5 @@
 // ============================================================
-// js/explore.js — Jelajah Buku (Filter Hidden Books)
+// js/explore.js  EJelajah Buku (Filter Hidden Books)
 // ============================================================
 
 const genreList   = document.getElementById("genre-list");
@@ -37,7 +37,7 @@ async function ambilBuku() {
     await muatDaftarTersembunyi();
 
     try {
-        let url = "https://gutendex.com/books?languages=en";
+        let url = "/api/gutendex/books?languages=en";
         if (kataCari) {
             url += "&search=" + encodeURIComponent(kataCari);
         }

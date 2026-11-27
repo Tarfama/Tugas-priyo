@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 
 <head>
@@ -13,15 +13,15 @@
     <aside class="admin-sidebar">
         <div class="admin-logo"><a href="index.html">MYPERPUS <span>Admin</span></a></div>
         <ul class="admin-nav">
-            <li><a href="index.html">📊 Dashboard</a></li>
-            <li><a href="users.html">👥 Pengguna</a></li>
-            <li><a href="reviews.html">💬 Moderasi Ulasan</a></li>
-            <li><a href="featured.html">⭐ Buku Pilihan</a></li>
-            <li><a href="hidden.html" class="aktif">🚫 Sembunyikan Buku</a></li>
-            <li><a href="announcements.html">📢 Pengumuman</a></li>
-            <li><a href="logs.html">📜 Log Aktivitas</a></li>
+            <li><a href="index.html">?? Dashboard</a></li>
+            <li><a href="users.html">?? Pengguna</a></li>
+            <li><a href="reviews.html">?? Moderasi Ulasan</a></li>
+            <li><a href="featured.html">? Buku Pilihan</a></li>
+            <li><a href="hidden.html" class="aktif">?? Sembunyikan Buku</a></li>
+            <li><a href="announcements.html">?? Pengumuman</a></li>
+            <li><a href="logs.html">?? Log Aktivitas</a></li>
             <li style="margin-top: auto; border-top: 1px solid #1e293b; padding-top: 10px;">
-                <a href="../index.html" target="_blank">🌐 Buka Website Utama</a>
+                <a href="../index.html" target="_blank">?? Buka Website Utama</a>
             </li>
         </ul>
     </aside>
@@ -35,7 +35,7 @@
         <main class="admin-content">
             <!-- Box Cari di Gutendex untuk Disembunyikan -->
             <div class="admin-box">
-                <div class="admin-box-title">🔍 Cari Buku dari Gutendex untuk Disembunyikan dari Publik</div>
+                <div class="admin-box-title">?? Cari Buku dari Gutendex untuk Disembunyikan dari Publik</div>
                 <div style="display: flex; gap: 10px; margin-bottom: 16px;">
                     <input type="text" id="search-gutendex-hide" placeholder="Ketik judul buku atau ID buku yang ingin disembunyikan..." style="flex: 1; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 8px;">
                     <button class="btn-action danger" id="btn-search-hide">Cari Buku</button>
@@ -45,7 +45,7 @@
 
             <!-- Daftar Buku yang Sedang Disembunyikan -->
             <div class="admin-box">
-                <div class="admin-box-title">🚫 Daftar Buku yang Sedang Disembunyikan (Tidak Tampil di Home/Explore/Search)</div>
+                <div class="admin-box-title">?? Daftar Buku yang Sedang Disembunyikan (Tidak Tampil di Home/Explore/Search)</div>
                 <div class="table-responsive">
                     <table class="admin-table">
                         <thead>
@@ -125,7 +125,7 @@
             resultsArea.innerHTML = '<p style="color:#64748b;">Mencari buku...</p>';
 
             try {
-                const res = await fetch(`https://gutendex.com/books?languages=en&search=${encodeURIComponent(query)}`);
+                const res = await fetch(`/api/gutendex/books?languages=en&search=${encodeURIComponent(query)}`);
                 const data = await res.json();
                 const list = (data.results || []).slice(0, 8);
 
@@ -144,7 +144,7 @@
                             <small style="color:#64748b; font-size:11px;">${aman(author)} (#${b.id})</small>
                             <div style="margin-top:8px;">
                                 <button class="btn-action danger btn-hide-this-book" data-id="${b.id}" data-title="${aman(b.title)}" style="width:100%; font-size:11px;">
-                                    🚫 Sembunyikan Buku Ini
+                                    ?? Sembunyikan Buku Ini
                                 </button>
                             </div>
                         </div>

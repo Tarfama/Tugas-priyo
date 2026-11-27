@@ -1,5 +1,5 @@
 // ============================================================
-// js/search.js — Pencarian Navbar (Filter Buku Tersembunyi)
+// js/search.js  EPencarian Navbar (Filter Buku Tersembunyi)
 // ============================================================
 
 const kolomCari = document.querySelector(".search input");
@@ -75,7 +75,7 @@ if (kolomCari) {
         const ini = ++permintaanKe;
         try {
             const res = await fetch(
-                "https://gutendex.com/books?languages=en&search=" + encodeURIComponent(kata)
+                "/api/gutendex/books?languages=en&search=" + encodeURIComponent(kata)
             );
             if (!res.ok) throw new Error("HTTP " + res.status);
             const data = await res.json();
