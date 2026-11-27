@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jelajahi Buku - MYPERPUS</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/navbar-dropdown.css">
+    <link rel="stylesheet" href="/css/explore.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">MYPERPUS</a>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <a href="index.html">Home</a>
+                <a href="library.html">Library</a>
+                <a href="explore.html" class="aktif">Explore</a>
+            </ul>
+        </nav>
+
+        <div class="kanan">
+            <div class="search">
+                <input type="text" placeholder="Cari...">
+            </div>
+            <div class="profile" id="profile-area">
+                <!-- Diisi dinamis oleh navbar-dropdown.js -->
+            </div>
+        </div>
+    </header>
+
+    <main class="explore">
+        <h1>Daftar Buku</h1>
+
+        <div class="toolbar">
+            <div class="genre-list" id="genre-list"></div>
+
+            <div class="urutkan">
+                <label for="urutkan">Urutkan: </label>
+                <select id="urutkan">
+                    <option value="popular">Terpopuler</option>
+                    <option value="az">Judul A-Z </option>
+                </select>
+            </div>
+        </div>
+
+        <div class="book-grid" id="explore-list"></div>
+        <button class="btn-lagi hidden" id="btn-lagi">Tampilkan lebih banyak</button>
+
+        <p class="kosong hidden" id="explore-kosong">Belum ada buku di genre ini.</p>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/explore.js"></script>
+    <script src="/js/search.js"></script>
+    <script src="/js/navbar-dropdown.js"></script>
+</body>
+</html>
+

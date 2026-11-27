@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MYPERPUS — Perpustakaan Digital</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/navbar-dropdown.css">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <a href="index.html">MYPERPUS</a>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <a href="index.html" class="aktif">Home</a>
+                <a href="library.html">Library</a>
+                <a href="explore.html">Explore</a>
+            </ul>
+        </nav>
+
+        <div class="kanan">
+            <div class="search">
+                <input type="text" placeholder="Cari...">
+            </div>
+            <div class="profile" id="profile-area">
+                <!-- Diisi dinamis oleh navbar-dropdown.js -->
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Banner Pengumuman Aktif dari Admin (Tahap 2 & 5) -->
+        <div id="banner-pengumuman" class="hidden" style="margin-bottom: 24px; padding: 14px 20px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; color: #1e40af;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px;">📢</span>
+                <div>
+                    <strong id="pengumuman-judul" style="font-size: 15px;"></strong>
+                    <p id="pengumuman-konten" style="font-size: 13px; margin-top: 2px; color: #1e3a8a;"></p>
+                </div>
+            </div>
+        </div>
+
+        <section class="hero">
+            <h1>Welcome to MYPERPUS</h1>
+            <p>Tempat membaca favoritmu. Jelajahi ribuan novel dan buku klasik gratis.</p>
+        </section>
+
+        <!-- Bagian Khusus User Login: Terakhir Dibaca (Tahap 2) -->
+        <section class="novel-section hidden" id="section-terakhir-dibaca">
+            <h2>📖 Lanjutkan Membaca</h2>
+            <div class="book-grid1" id="list-terakhir-dibaca"></div>
+        </section>
+
+        <!-- Bagian Pilihan Admin / Featured Books (Tahap 2 & 5) -->
+        <section class="novel-section hidden" id="section-pilihan-admin">
+            <h2>⭐ Rekomendasi Pilihan Editor</h2>
+            <div class="book-grid1" id="list-pilihan-admin"></div>
+        </section>
+
+        <!-- Bagian Katalog Gutendex -->
+        <section class="novel-section">
+            <h2>Novel Populer</h2>
+            <div class="book-grid1" id="list-populer"></div>
+        </section>
+
+        <section class="novel-section">
+            <h2>Novel Adventure</h2>
+            <div class="book-grid1" id="list-adventure"></div>
+        </section>
+
+        <section class="novel-section">
+            <h2>Novel Romance</h2>
+            <div class="book-grid1" id="list-romance"></div>
+        </section>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script src="/js/home.js"></script>
+    <script src="/js/search.js"></script>
+    <script src="/js/navbar-dropdown.js"></script>
+</body>
+
+</html>
+
